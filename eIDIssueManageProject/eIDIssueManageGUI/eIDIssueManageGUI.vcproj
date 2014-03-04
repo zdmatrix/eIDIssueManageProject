@@ -5,6 +5,10 @@
 	Name="eIDIssueManageGUI"
 	ProjectGUID="{6F4916DC-2AA8-4BCC-92AD-3D5FEE164C6E}"
 	RootNamespace="eIDIssueManageGUI"
+	SccProjectName="Svn"
+	SccAuxPath="Svn"
+	SccLocalPath="Svn"
+	SccProvider="SubversionScc"
 	Keyword="ManagedCProj"
 	>
 	<Platforms>
@@ -204,6 +208,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FormMain.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -235,6 +243,16 @@
 				>
 				<File
 					RelativePath=".\FormLogIn.resX"
+					SubType="Designer"
+					>
+				</File>
+			</File>
+			<File
+				RelativePath=".\FormMain.h"
+				FileType="3"
+				>
+				<File
+					RelativePath=".\FormMain.resx"
 					SubType="Designer"
 					>
 				</File>
