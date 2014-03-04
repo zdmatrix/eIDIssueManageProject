@@ -161,11 +161,12 @@ namespace eIDIssueManageGUI {
 			// 
 			// FormLogIn
 			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
-			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+			this->AutoScaleDimensions = System::Drawing::SizeF(96, 96);
+			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Dpi;
+			this->AutoSize = true;
 			this->BackColor = System::Drawing::SystemColors::Control;
 			this->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
-			this->ClientSize = System::Drawing::Size(476, 338);
+			this->ClientSize = System::Drawing::Size(472, 326);
 			this->Controls->Add(this->btnQuit);
 			this->Controls->Add(this->btnLogIn);
 			this->Controls->Add(this->textLogInPassword);

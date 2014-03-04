@@ -212,6 +212,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FormRegActive.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -253,6 +257,16 @@
 				>
 				<File
 					RelativePath=".\FormMain.resx"
+					SubType="Designer"
+					>
+				</File>
+			</File>
+			<File
+				RelativePath=".\FormRegActive.h"
+				FileType="3"
+				>
+				<File
+					RelativePath=".\FormRegActive.resx"
 					SubType="Designer"
 					>
 				</File>
