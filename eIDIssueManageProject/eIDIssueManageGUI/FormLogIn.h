@@ -195,11 +195,13 @@ namespace eIDIssueManageGUI {
 				 }
 			 }
 	private: System::Boolean bVerifyBackground(String^ logName, String^ logPin){
+				 /*
 				 for(int i = 0; i < 60000; i ++){
 					 for(int i = 0; i < 10000; i ++){
 						;
 					 }		
 				 }
+				 */
 				 bIDVerified = true;
 				 return bIDVerified;
 			 }

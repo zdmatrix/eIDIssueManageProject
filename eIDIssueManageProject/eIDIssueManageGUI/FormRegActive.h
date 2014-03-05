@@ -1,11 +1,16 @@
 #pragma once
 
+#include <uuids.h>
+
 using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Collections;
 using namespace System::Windows::Forms;
 using namespace System::Data;
 using namespace System::Drawing;
+
+using namespace System::Drawing::Imaging;
+
 
 
 namespace eIDIssueManageGUI {
@@ -26,6 +31,13 @@ namespace eIDIssueManageGUI {
 		bool bIDInfo;
 		bool bIDHeadPic;
 		bool bIDReaderConnect;
+ 
+    
+
+	private: System::Windows::Forms::Button^  btnCaptureIDInfo;
+	private: System::Windows::Forms::Button^  btnCaptureHeadPic;
+
+	public: 
 		bool bCameraConnect;
 
 		FormRegActive(void)
@@ -34,6 +46,9 @@ namespace eIDIssueManageGUI {
 			bIDHeadPic = false;
 			bIDReaderConnect = false;
 			bCameraConnect = false;
+
+			
+			
 			InitializeComponent();
 			//
 			//TODO: 在此处添加构造函数代码
@@ -115,10 +130,8 @@ namespace eIDIssueManageGUI {
 			this->label8 = (gcnew System::Windows::Forms::Label());
 			this->label9 = (gcnew System::Windows::Forms::Label());
 			this->btnRegActive = (gcnew System::Windows::Forms::Button());
-
-			this->Load += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Load);
-			
-
+			this->btnCaptureIDInfo = (gcnew System::Windows::Forms::Button());
+			this->btnCaptureHeadPic = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picHead))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -129,6 +142,7 @@ namespace eIDIssueManageGUI {
 			this->picHead->Size = System::Drawing::Size(240, 340);
 			this->picHead->TabIndex = 0;
 			this->picHead->TabStop = false;
+			this->picHead->Click += gcnew System::EventHandler(this, &FormRegActive::picHead_Click);
 			// 
 			// label1
 			// 
@@ -326,7 +340,7 @@ namespace eIDIssueManageGUI {
 			// 
 			// btnRegActive
 			// 
-			this->btnRegActive->Location = System::Drawing::Point(123, 357);
+			this->btnRegActive->Location = System::Drawing::Point(294, 411);
 			this->btnRegActive->Name = L"btnRegActive";
 			this->btnRegActive->Size = System::Drawing::Size(75, 23);
 			this->btnRegActive->TabIndex = 18;
@@ -334,12 +348,34 @@ namespace eIDIssueManageGUI {
 			this->btnRegActive->UseVisualStyleBackColor = true;
 			this->btnRegActive->Click += gcnew System::EventHandler(this, &FormRegActive::btnRegActive_Click);
 			// 
+			// btnCaptureIDInfo
+			// 
+			this->btnCaptureIDInfo->Location = System::Drawing::Point(15, 341);
+			this->btnCaptureIDInfo->Name = L"btnCaptureIDInfo";
+			this->btnCaptureIDInfo->Size = System::Drawing::Size(128, 23);
+			this->btnCaptureIDInfo->TabIndex = 19;
+			this->btnCaptureIDInfo->Text = L"开始采集身份证信息";
+			this->btnCaptureIDInfo->UseVisualStyleBackColor = true;
+			this->btnCaptureIDInfo->Click += gcnew System::EventHandler(this, &FormRegActive::btnCaptureIDInfo_Click);
+			// 
+			// btnCaptureHeadPic
+			// 
+			this->btnCaptureHeadPic->Location = System::Drawing::Point(380, 374);
+			this->btnCaptureHeadPic->Name = L"btnCaptureHeadPic";
+			this->btnCaptureHeadPic->Size = System::Drawing::Size(128, 23);
+			this->btnCaptureHeadPic->TabIndex = 20;
+			this->btnCaptureHeadPic->Text = L"开始采集身份证信息";
+			this->btnCaptureHeadPic->UseVisualStyleBackColor = true;
+			this->btnCaptureHeadPic->Click += gcnew System::EventHandler(this, &FormRegActive::btnCaptureHeadPic_Click);
+			// 
 			// FormRegActive
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(96, 96);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Dpi;
 			this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->ClientSize = System::Drawing::Size(632, 446);
+			this->Controls->Add(this->btnCaptureHeadPic);
+			this->Controls->Add(this->btnCaptureIDInfo);
 			this->Controls->Add(this->btnRegActive);
 			this->Controls->Add(this->label9);
 			this->Controls->Add(this->label8);
@@ -363,15 +399,19 @@ namespace eIDIssueManageGUI {
 			this->Name = L"FormRegActive";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 			this->Text = L"注册激活";
+			this->Load += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Load);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picHead))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
-		private: System::Void FormRegActive_Load(System::Object^  sender, System::EventArgs^  e) {
-					 FormRegActive_InitializeComponent();
 
+		private: System::Void FormRegActive_Load(System::Object^  sender, System::EventArgs^  e) {
+//					 FormRegActive_InitializeComponent();
+					 this->btnCaptureIDInfo->Enabled = false;
+//					 this->btnCaptureHeadPic->Enabled = false;
+//					 this->btnRegActive->Enabled = false;
 			 }
 
 		private: System::Void FormRegActive_InitializeComponent() {
@@ -384,5 +424,172 @@ namespace eIDIssueManageGUI {
 			 }
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
 			 }
+private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
+
+		 }
+
+		 
+
+private: System::Void picHead_Click(System::Object^  sender, System::EventArgs^  e) {
+			
+            
+		 }
+private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::EventArgs^  e) {
+		
+			 IGraphBuilder *pGraph = NULL;
+    IMediaControl *pControl = NULL;
+    IMediaEvent   *pEvent = NULL;
+	ICaptureGraphBuilder2 *pBuild = NULL;
+	
+			 InitSystemDeviceEnum();
+			 HRESULT hr = CoInitialize(NULL);
+		if (FAILED(hr))
+    {
+		MessageBox::Show("ERROR - Could not initialize COM library");
+        return;
+		
+    }
+		hr = InitCaptureGraphBuilder(&pGraph, &pBuild);
+		/*	 
+    
+	HRESULT hr = CoInitialize(NULL);
+    // Initialize the COM library.
+    if (FAILED(hr))
+    {
+ //       printf("ERROR - Could not initialize COM library");
+ //       return;
+		;
+    }
+
+    // Create the filter graph manager and query for interfaces.
+    hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, 
+                        IID_IGraphBuilder, (void **)&pGraph);
+    if (FAILED(hr))
+    {
+//        printf("ERROR - Could not create the Filter Graph Manager.");
+//        return;
+		;
+    }
+
+    hr = pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
+    hr = pGraph->QueryInterface(IID_IMediaEvent, (void **)&pEvent);
+
+    // Build the graph. IMPORTANT: Change this string to a file on your system.
+    hr = pGraph->RenderFile(L"e:\\Example.avi", NULL);
+	
+    if (SUCCEEDED(hr))
+    {
+        // Run the graph.
+        hr = pControl->Run();
+        if (SUCCEEDED(hr))
+        {
+            // Wait for completion.
+            long evCode;
+            pEvent->WaitForCompletion(INFINITE, &evCode);
+
+            // Note: Do not use INFINITE in a real application, because it
+            // can block indefinitely.
+        }
+		
+    }
+    pControl->Release();
+    pEvent->Release();
+    pGraph->Release();
+    CoUninitialize();
+		 */
+		 }
+
+
+
+
+		 HRESULT InitCaptureGraphBuilder(
+  IGraphBuilder **ppGraph,  // Receives the pointer.
+  ICaptureGraphBuilder2 **ppBuild  // Receives the pointer.
+)
+{
+    if (!ppGraph || !ppBuild)
+    {
+        return E_POINTER;
+    }
+    IGraphBuilder *pGraph = NULL;
+    ICaptureGraphBuilder2 *pBuild = NULL;
+
+    // Create the Capture Graph Builder.
+    HRESULT hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, 
+        CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2, (void**)&pBuild );
+    if (SUCCEEDED(hr))
+    {
+        // Create the Filter Graph Manager.
+        hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER,
+            IID_IGraphBuilder, (void**)&pGraph);
+        if (SUCCEEDED(hr))
+        {
+            // Initialize the Capture Graph Builder.
+            pBuild->SetFiltergraph(pGraph);
+
+            // Return both interface pointers to the caller.
+            *ppBuild = pBuild;
+            *ppGraph = pGraph; // The caller must release both interfaces.
+            return S_OK;
+        }
+        else
+        {
+            pBuild->Release();
+        }
+    }
+    return hr; // Failed
+}
+
+		 HRESULT InitSystemDeviceEnum(){
+			HRESULT hr;
+ICreateDevEnum *pSysDevEnum = NULL;
+hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER,
+    IID_ICreateDevEnum, (void **)&pSysDevEnum);
+if (FAILED(hr))
+{
+    return hr;
+}
+
+// Obtain a class enumerator for the video compressor category.
+IEnumMoniker *pEnumCat = NULL;
+hr = pSysDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pEnumCat, 0);
+
+if (hr == S_OK) 
+{
+    // Enumerate the monikers.
+    IMoniker *pMoniker = NULL;
+    ULONG cFetched;
+    while(pEnumCat->Next(1, &pMoniker, &cFetched) == S_OK)
+    {
+        IPropertyBag *pPropBag;
+        hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, 
+            (void **)&pPropBag);
+        if (SUCCEEDED(hr))
+        {
+            // To retrieve the filter's friendly name, do the following:
+            VARIANT varName;
+            VariantInit(&varName);
+            hr = pPropBag->Read(L"图像处理设备", &varName, 0);
+            if (SUCCEEDED(hr))
+            {
+				MessageBox::Show("Got you!");// Display the name in your UI somehow.
+            }
+            VariantClear(&varName);
+
+            // To create an instance of the filter, do the following:
+            IBaseFilter *pFilter;
+            hr = pMoniker->BindToObject(NULL, NULL, IID_IBaseFilter,
+                (void**)&pFilter);
+            // Now add the filter to the graph. 
+            //Remember to release pFilter later.
+            pPropBag->Release();
+        }
+        pMoniker->Release();
+    }
+    pEnumCat->Release();
+}
+pSysDevEnum->Release();
+		 }
+
 };
 }
