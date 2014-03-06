@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FormMain.h"
+
 namespace eIDIssueManageGUI {
 
 	using namespace System;
@@ -26,12 +28,16 @@ namespace eIDIssueManageGUI {
 		String^ strLogInName;
 		String^ strLogInPassword;
 
+		FormMain^ formMain;
+
 		FormLogIn(void)
 		{
 			
 			bIDVerified = false;
 			strLogInName = "";
 			strLogInPassword = "";
+			
+			formMain = gcnew FormMain();
 			
 			InitializeComponent();
 			//
@@ -180,6 +186,7 @@ namespace eIDIssueManageGUI {
 			this->Text = L"eID发行管理登录界面";
 			this->ResumeLayout(false);
 			this->PerformLayout();
+			
 
 		}
 #pragma endregion
@@ -187,9 +194,9 @@ namespace eIDIssueManageGUI {
 	private: System::Void btnLogIn_Click(System::Object^  sender, System::EventArgs^  e) {
 				 bIDVerified = bVerifyBackground(strLogInName, strLogInPassword);
 				 if(bIDVerified){
-					 this->Close();
-					 this->Owner->Activate();
-					 this->Owner->Show();
+					 this->Hide();
+					 formMain->Activate();
+					 formMain->ShowDialog(this);
 				 }else{
 					 MessageBox::Show("用户名/密码错误，请重新输入");
 				 }
@@ -207,6 +214,7 @@ namespace eIDIssueManageGUI {
 			 }
 private: System::Void btnQuit_Click(System::Object^  sender, System::EventArgs^  e) {
 			 this->Close();
+			 
 		 }
 };
 }

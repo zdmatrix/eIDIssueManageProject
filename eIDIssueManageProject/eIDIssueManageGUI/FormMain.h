@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FormLogIn.h"
+
 #include "FormRegActive.h"
 
 using namespace System;
@@ -26,7 +26,7 @@ namespace eIDIssueManageGUI {
 	{
 	public:
 
-		FormLogIn^ formLogIn;
+//		FormLogIn^ formLogIn;
 		FormRegActive^ formRegActive;
 		String^ strIDName;
 		String^ strIDSex;
@@ -34,7 +34,7 @@ namespace eIDIssueManageGUI {
 
 		FormMain(void)
 		{
-			formLogIn = gcnew FormLogIn();
+//			formLogIn = gcnew FormLogIn();
 			formRegActive = gcnew FormRegActive();
 			
 			InitializeComponent();
@@ -171,9 +171,9 @@ namespace eIDIssueManageGUI {
 		}
 #pragma endregion
 	private: System::Void FormMain_Load(System::Object^  sender, System::EventArgs^  e) {
-				 this->Hide();
-				 formLogIn->Activate();
-				 formLogIn->ShowDialog(this);
+//				 this->Hide();
+//				 formLogIn->Activate();
+//				 formLogIn->ShowDialog(this);
 
 			 }
 	private: System::Void btnMainExit_Click(System::Object^  sender, System::EventArgs^  e) {

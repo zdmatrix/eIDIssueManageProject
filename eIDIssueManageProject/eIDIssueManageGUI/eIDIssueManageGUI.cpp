@@ -1,7 +1,7 @@
 // eIDIssueManageGUI.cpp: 主项目文件。
 
 #include "stdafx.h"
-#include "FormMain.h"
+#include "FormLogIn.h"
 
 using namespace eIDIssueManageGUI;
 
@@ -13,6 +13,7 @@ int main(array<System::String ^> ^args)
 	Application::SetCompatibleTextRenderingDefault(false); 
 
 	// 创建主窗口并运行它
-	Application::Run(gcnew FormMain());
+//	Application::Run(gcnew FormMain());
+	Application::Run(gcnew FormLogIn());
 	return 0;
 }

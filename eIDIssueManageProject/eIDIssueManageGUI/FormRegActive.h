@@ -1,6 +1,7 @@
 #pragma once
 
-#include <uuids.h>
+//#include <uuids.h>
+
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -39,6 +40,9 @@ namespace eIDIssueManageGUI {
 
 	public: 
 		bool bCameraConnect;
+		String^ strCaptureDevName;
+		
+		const char* CAPTUREDEVNAME;
 
 		FormRegActive(void)
 		{
@@ -46,6 +50,9 @@ namespace eIDIssueManageGUI {
 			bIDHeadPic = false;
 			bIDReaderConnect = false;
 			bCameraConnect = false;
+
+			strCaptureDevName = "";
+			CAPTUREDEVNAME = "USB 视频设备";
 
 			
 			
@@ -436,160 +443,167 @@ private: System::Void picHead_Click(System::Object^  sender, System::EventArgs^ 
 		 }
 private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::EventArgs^  e) {
 		
-			 IGraphBuilder *pGraph = NULL;
-    IMediaControl *pControl = NULL;
-    IMediaEvent   *pEvent = NULL;
-	ICaptureGraphBuilder2 *pBuild = NULL;
+					IGraphBuilder *pGraph = NULL;
+					ICaptureGraphBuilder2 *pBuild = NULL;
+
+//					ICreateDevEnum *pSysDevEnum = NULL;
+					IEnumMoniker *pEnumCat = NULL;
+					IMoniker *pMoniker = NULL;
+
+					IMediaControl *pControl = NULL;
+					IMediaEvent   *pEvent = NULL;
+					
+					IBaseFilter *pCap = NULL;
+					IBaseFilter *pMux = NULL;
+					
+						
+					ULONG cFetched;
+					HRESULT hr = NULL;
 	
-			 InitSystemDeviceEnum();
-			 HRESULT hr = CoInitialize(NULL);
-		if (FAILED(hr))
-    {
-		MessageBox::Show("ERROR - Could not initialize COM library");
-        return;
+					hr = CoInitialize(NULL);
+					if (FAILED(hr))
+					{
+						MessageBox::Show("ERROR - Could not initialize COM library");
+						return;
 		
-    }
-		hr = InitCaptureGraphBuilder(&pGraph, &pBuild);
-		/*	 
-    
-	HRESULT hr = CoInitialize(NULL);
-    // Initialize the COM library.
-    if (FAILED(hr))
-    {
- //       printf("ERROR - Could not initialize COM library");
- //       return;
-		;
-    }
+					}
 
-    // Create the filter graph manager and query for interfaces.
-    hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, 
-                        IID_IGraphBuilder, (void **)&pGraph);
-    if (FAILED(hr))
-    {
-//        printf("ERROR - Could not create the Filter Graph Manager.");
-//        return;
-		;
-    }
+					hr = InitCaptureGraphBuilder(&pGraph, &pBuild);
+					if(hr != S_OK){
+						MessageBox::Show("ERROR - Could not initialize Capture Graph Builder");
+						return ;
+					}
+					
+					hr = SelectCaptureDevice(&pMoniker);
 
-    hr = pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
-    hr = pGraph->QueryInterface(IID_IMediaEvent, (void **)&pEvent);
+					hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&pCap);
+					if (SUCCEEDED(hr)){
+						hr = pGraph->AddFilter(pCap, L"Capture Filter");
+						if(SUCCEEDED(hr)){
+							hr = pBuild->RenderStream(
+								&PIN_CATEGORY_CAPTURE, // Pin category.
+								&MEDIATYPE_Video,      // Media type.
+								pCap,                  // Capture filter.
+								NULL,                  // Intermediate filter (optional).
+								pMux
+								); 
+							
+							while(1){
+							    hr = pBuild->SetOutputFileName(
+									&MEDIASUBTYPE_Avi,  // Specifies AVI for the target file.
+									L"E:\\Example.avi", // File name.
+									&pMux,              // Receives a pointer to the mux.
+									NULL
+									);            // Mux or file sink filter.
+							}
+								// Release the mux filter.
+//								pMux->Release();
 
-    // Build the graph. IMPORTANT: Change this string to a file on your system.
-    hr = pGraph->RenderFile(L"e:\\Example.avi", NULL);
-	
-    if (SUCCEEDED(hr))
-    {
-        // Run the graph.
-        hr = pControl->Run();
-        if (SUCCEEDED(hr))
-        {
-            // Wait for completion.
-            long evCode;
-            pEvent->WaitForCompletion(INFINITE, &evCode);
+						}
+					}
 
-            // Note: Do not use INFINITE in a real application, because it
-            // can block indefinitely.
-        }
-		
-    }
-    pControl->Release();
-    pEvent->Release();
-    pGraph->Release();
-    CoUninitialize();
-		 */
-		 }
+			}
+		 
+			HRESULT InitCaptureGraphBuilder(IGraphBuilder **ppGraph, ICaptureGraphBuilder2 **ppBuild){
+					if (!ppGraph || !ppBuild){
+						return E_POINTER;
+					}
+					IGraphBuilder *pGraph = NULL;
+					ICaptureGraphBuilder2 *pBuild = NULL;
 
+					// Create the Capture Graph Builder.
+					HRESULT hr = CoCreateInstance(
+						CLSID_CaptureGraphBuilder2, 
+						NULL, 
+						CLSCTX_INPROC_SERVER, 
+						IID_ICaptureGraphBuilder2, 
+						(void**)&pBuild);
+					if (SUCCEEDED(hr)){
+						// Create the Filter Graph Manager.
+						hr = CoCreateInstance(
+							CLSID_FilterGraph, 
+							0, 
+							CLSCTX_INPROC_SERVER,
+							IID_IGraphBuilder, 
+							(void**)&pGraph);
+						if (SUCCEEDED(hr)){
+							// Initialize the Capture Graph Builder.
+							pBuild->SetFiltergraph(pGraph);
 
+							// Return both interface pointers to the caller.
+							*ppBuild = pBuild;
+							*ppGraph = pGraph; // The caller must release both interfaces.
+							return S_OK;
+						}else{
+							pBuild->Release();
+						}
+					}
+					return hr; // Failed
+			}
 
+			
+			HRESULT SelectCaptureDevice(IMoniker **ppMoniker){
+					
+					IEnumMoniker *pEnum = NULL;
+					ICreateDevEnum *pSysDevEnum = NULL;
+					IMoniker *pMoniker = NULL;
+					IPropertyBag *pPropBag = NULL;
+					
+					
+					HRESULT hr = CoInitialize(NULL);
+					if (SUCCEEDED(hr)){
+						hr = CoCreateInstance(
+							CLSID_SystemDeviceEnum, 
+							NULL,  
+							CLSCTX_INPROC_SERVER, 
+							IID_PPV_ARGS(&pSysDevEnum)
+							);
 
-		 HRESULT InitCaptureGraphBuilder(
-  IGraphBuilder **ppGraph,  // Receives the pointer.
-  ICaptureGraphBuilder2 **ppBuild  // Receives the pointer.
-)
-{
-    if (!ppGraph || !ppBuild)
-    {
-        return E_POINTER;
-    }
-    IGraphBuilder *pGraph = NULL;
-    ICaptureGraphBuilder2 *pBuild = NULL;
+						if(FAILED(hr)){
+							MessageBox::Show("ERROR - Could not initialize CreatDevEnum");
+							return hr;
+						}
+						hr = pSysDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pEnum, 0);
+						if (SUCCEEDED(hr)){
+							while (pEnum->Next(1, &pMoniker, NULL) == S_OK){
+								
+								hr = pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&pPropBag));
+								if (FAILED(hr)){
+									pMoniker->Release();
+									return hr;  
+								} 
+								*ppMoniker = pMoniker;
+								VARIANT var;
+								VariantInit(&var);
 
-    // Create the Capture Graph Builder.
-    HRESULT hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, 
-        CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2, (void**)&pBuild );
-    if (SUCCEEDED(hr))
-    {
-        // Create the Filter Graph Manager.
-        hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER,
-            IID_IGraphBuilder, (void**)&pGraph);
-        if (SUCCEEDED(hr))
-        {
-            // Initialize the Capture Graph Builder.
-            pBuild->SetFiltergraph(pGraph);
+								// Get description or friendly name.
+								hr = pPropBag->Read(L"Description", &var, 0);
+								if (FAILED(hr)){
+									hr = pPropBag->Read(L"FriendlyName", &var, 0);
+								}
+								if (SUCCEEDED(hr)){
+									strCaptureDevName = String(var.bstrVal).ToString();
+									if(!strCaptureDevName->CompareTo(String(CAPTUREDEVNAME).ToString())){
+										bCameraConnect = true;
+										
+										
+									}
 
-            // Return both interface pointers to the caller.
-            *ppBuild = pBuild;
-            *ppGraph = pGraph; // The caller must release both interfaces.
-            return S_OK;
-        }
-        else
-        {
-            pBuild->Release();
-        }
-    }
-    return hr; // Failed
-}
+								}
 
-		 HRESULT InitSystemDeviceEnum(){
-			HRESULT hr;
-ICreateDevEnum *pSysDevEnum = NULL;
-hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER,
-    IID_ICreateDevEnum, (void **)&pSysDevEnum);
-if (FAILED(hr))
-{
-    return hr;
-}
+								hr = pPropBag->Read(L"DevicePath", &var, 0);
+								if (SUCCEEDED(hr)){
+									// The device path is not intended for display.
+									VariantClear(&var); 
+								}
 
-// Obtain a class enumerator for the video compressor category.
-IEnumMoniker *pEnumCat = NULL;
-hr = pSysDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pEnumCat, 0);
-
-if (hr == S_OK) 
-{
-    // Enumerate the monikers.
-    IMoniker *pMoniker = NULL;
-    ULONG cFetched;
-    while(pEnumCat->Next(1, &pMoniker, &cFetched) == S_OK)
-    {
-        IPropertyBag *pPropBag;
-        hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, 
-            (void **)&pPropBag);
-        if (SUCCEEDED(hr))
-        {
-            // To retrieve the filter's friendly name, do the following:
-            VARIANT varName;
-            VariantInit(&varName);
-            hr = pPropBag->Read(L"图像处理设备", &varName, 0);
-            if (SUCCEEDED(hr))
-            {
-				MessageBox::Show("Got you!");// Display the name in your UI somehow.
-            }
-            VariantClear(&varName);
-
-            // To create an instance of the filter, do the following:
-            IBaseFilter *pFilter;
-            hr = pMoniker->BindToObject(NULL, NULL, IID_IBaseFilter,
-                (void**)&pFilter);
-            // Now add the filter to the graph. 
-            //Remember to release pFilter later.
-            pPropBag->Release();
-        }
-        pMoniker->Release();
-    }
-    pEnumCat->Release();
-}
-pSysDevEnum->Release();
-		 }
-
+								pPropBag->Release();
+								pMoniker->Release();
+							}
+						}
+					}
+					return hr;
+			}
+				
 };
 }
