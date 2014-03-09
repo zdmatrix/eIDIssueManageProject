@@ -7,5 +7,7 @@
 #include <windows.h>
 #include <dshow.h>
 
+//#include <atlbase.h>
+
 
 
