@@ -8,6 +8,7 @@
 #include <dshow.h>
 
 //#include <atlbase.h>
+#include <Strsafe.h>
 
 
 

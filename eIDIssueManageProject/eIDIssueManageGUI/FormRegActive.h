@@ -1,6 +1,7 @@
 #pragma once
 
 //#include <uuids.h>
+//#include <strsafe.h>
 
 
 using namespace System;
@@ -38,6 +39,8 @@ namespace eIDIssueManageGUI {
 					 ICaptureGraphBuilder2 *pCapture;
 					 IMoniker *pMoniker;
 
+		
+
 					 
 	};
 
@@ -52,6 +55,8 @@ namespace eIDIssueManageGUI {
 		
 		bool bReturnUpForm;
 		HRESULT hr;
+
+		DWORD dwRegister;
 
 		String^ strInfoMessage;
 		String^ strCaptureDevName;
@@ -81,7 +86,8 @@ namespace eIDIssueManageGUI {
 			bReturnUpForm = false;
 
 			strInfoMessage = "";
-			CAPTUREDEVNAME = "USB 视频设备";
+//			CAPTUREDEVNAME = "USB 视频设备";
+			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
 
 			CVComment = gcnew CaptureVideoComment(); 
 			
@@ -456,16 +462,18 @@ namespace eIDIssueManageGUI {
 		private: System::Void FormRegActive_Shown(System::Object^  sender, System::EventArgs^  e) {
 					 
 					 ::DialogResult result;
-/*					 
+					 
 					 IBaseFilter *pBaseFilter = NULL;
-					 IVideoWindow  *pVW = NULL;
-					 IMediaControl *pMC = NULL;
+//					 IVideoWindow  **ppVW = NULL;
+//					 IMediaControl **ppMC = NULL;
 //					 IMediaEventEx *pME = NULL;
-					 IFilterGraph2 *pGraph = NULL;
-					 ICaptureGraphBuilder2 *pCapture = NULL;
-					 IMoniker *pMoniker =NULL;
-  */
-					 RECT rc;
+//					 IFilterGraph2 *pGraph = NULL;
+//					 ICaptureGraphBuilder2 *pCapture = NULL;
+//					 IMoniker *pMoniker =NULL;
+  
+					 
+
+					 
   
 					 strInfoMessage = "单击'确定'开始设备查找\r\n单击'取消'返回上一级菜单";
 					 while(1){
@@ -475,7 +483,6 @@ namespace eIDIssueManageGUI {
 							break;
 						}else{
 							bReturnUpForm = false;
-//							hr = FindCaptureDevice(&pMoniker);
 							hr = FindCaptureDevice();
 							if(FAILED(hr)){
 								strInfoMessage = "没有找到设备,请确认设备连接正常\r\n单击'确定'重新查找\r\n单击'取消'返回上一级菜单";	
@@ -483,52 +490,22 @@ namespace eIDIssueManageGUI {
 								if(bCameraConnect){
 									btnCaptureIDInfo->Enabled = true;
 									btnCaptureHeadPic->Enabled = true;
-									hr = InitGraphFilterInstance(&pGraph, &pCapture);
+									hr = InitGraphFilterInstance();
 									if(FAILED(hr)){
 										strInfoMessage = "InitGraphFilterInstance failed!";
 									}else{
-										hr = pGraph->QueryInterface(IID_IMediaControl,(LPVOID *) &pMC);
-										if (FAILED(hr))
-											MessageBox::Show("Initial IMediaControl failed!");
-
-										hr = pGraph->QueryInterface(IID_IVideoWindow, (LPVOID *) &pVW);
-										if (FAILED(hr))
-											MessageBox::Show("Initial IVideoWindow failed!");
-										/*
-										hr = pGraph->QueryInterface(IID_IMediaEvent, (LPVOID *) &pME);
-										if (FAILED(hr))
-											MessageBox::Show("Initial IMediaEventEx failed!");
-										*/
-										hr = pVW->put_Owner((OAHWND)picHead->Handle.ToPointer());
-			
-										hr = InitPriviewVideoFilter(pMoniker, pGraph, pCapture);
+										
+										hr = InitPriviewVideoFilter();
 										if(FAILED(hr)){
 											MessageBox::Show("InitPriviewVideoFilter failed!");
 										}
 										
-										pMoniker->Release();
-										pGraph->Release();
-										pCapture->Release();
+										SetVideoWindows();
 
-										hr = pVW->put_Owner((OAHWND)picHead->Handle.ToPointer());
-										// Make the preview video fill our window
-										GetClientRect((HWND)picHead->Handle.ToPointer(), &rc);
-										pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
+										hr = CVComment->pMC->Run();
+										
+									
 
-										// Set video window style
-										hr = pVW->put_WindowStyle(WS_CHILD | WS_CLIPCHILDREN);
-   
-
-										// Use helper function to position video window in client rect 
-										// of main application window
-   
-
-										// Make the video window visible, now that it is properly positioned
-										hr = pVW->put_Visible(OATRUE);
-
-										hr = pMC->Run();
-//										pVW->Release();
-										pMC->Release();
 										break;
 
 									}
@@ -556,7 +533,7 @@ namespace eIDIssueManageGUI {
 			CVComment->pMC = NULL;
 			CVComment->pMoniker = NULL;
 			CVComment->pVW = NULL;
-			
+		
 					 
 			}
 
@@ -578,7 +555,7 @@ private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::Ev
 
 private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::EventArgs^  e) {
 
-			
+/*			
 			
 			HRESULT hr;
 
@@ -589,73 +566,7 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 			ICaptureGraphBuilder2 *pCapture = NULL;
 			IBaseFilter *pCapDevBaseFilter = NULL;
 			IMoniker *pMoniker =NULL;
-			
-			hr = CoCreateInstance (CLSID_FilterGraph, NULL, CLSCTX_INPROC,
-                           IID_IFilterGraph2, (void **) &pGraph);
-			if (FAILED(hr))
-				MessageBox::Show("Initial IFilterGraph2 failed!");
-
-			// Create the capture graph builder
-			 hr = CoCreateInstance (CLSID_CaptureGraphBuilder2 , NULL, CLSCTX_INPROC,
-                           IID_ICaptureGraphBuilder2, (void **) &pCapture);
-			if (FAILED(hr))
-				MessageBox::Show("Initial ICaptureGraphBuilder2 failed!");
-    
-			// Obtain interfaces for media control and Video Window
-			hr = pGraph->QueryInterface(IID_IMediaControl,(LPVOID *) &pMC);
-			if (FAILED(hr))
-				MessageBox::Show("Initial IMediaControl failed!");
-
-			hr = pGraph->QueryInterface(IID_IVideoWindow, (LPVOID *) &pVW);
-			if (FAILED(hr))
-				MessageBox::Show("Initial IVideoWindow failed!");
-
-			hr = pGraph->QueryInterface(IID_IMediaEvent, (LPVOID *) &pME);
-			if (FAILED(hr))
-				MessageBox::Show("Initial IMediaEventEx failed!");
-
-			// Set the window handle used to process graph events
-//			hr = pME->SetNotifyWindow((OAHWND)ghApp, WM_VIDEOWINDOSW, 0);
-
-			
-			ULONG cFetched;
-
-   
-			// Create the system device enumerator
-//			CComPtr <ICreateDevEnum> pDevEnum = NULL;
-			ICreateDevEnum *pDevEnum = NULL;
-
-			hr = CoCreateInstance (CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC,
-                           IID_ICreateDevEnum, (void ** ) &pDevEnum);
-			if (FAILED(hr)){
-				MessageBox::Show("Initial ICreateDevEnum failed!");
-			}
-
-			// Create an enumerator for the video capture devices
-//			CComPtr <IEnumMoniker> pClassEnum = NULL;
-			IEnumMoniker *pClassEnum = NULL;
-
-			hr = pDevEnum->CreateClassEnumerator (CLSID_VideoInputDeviceCategory, &pClassEnum, 0);
-			if (FAILED(hr)){
-				MessageBox::Show("Initial IEnumMoniker failed!");
-			}
-
-			// If there are no enumerators for the requested type, then 
-			// CreateClassEnumerator will succeed, but pClassEnum will be NULL.
-			if (pClassEnum == NULL){
-				MessageBox::Show("Initial IEnumMoniker failed, return NULL!");
-			}
-
-			// Use the first video capture device on the device list.
-			// Note that if the Next() call succeeds but there are no monikers,
-			// it will return S_FALSE (which is not a failure).  Therefore, we
-			// check that the return code is S_OK instead of using SUCCEEDED() macro.
-			if (S_OK == (pClassEnum->Next (1, &pMoniker, &cFetched))){
-//				MessageBox::Show("Enum Moniker done!");
-				;
-			}else{
-				MessageBox::Show("Enum Moniker failed!");
-			}
+		
 
    
 			IBaseFilter *pBaseFilter = NULL;
@@ -741,19 +652,43 @@ hr = pCapture->SetOutputFileName(
 			}
 
 			hr = pMC->Stop();
+			*/
 
 		}
 
-		
+		void SetVideoWindows(){
+			
+			RECT rc;
 
-		HRESULT InitPriviewVideoFilter(IMoniker *pMoniker, IFilterGraph2 *pGraph, ICaptureGraphBuilder2 *pCapture){
+			hr = CVComment->pVW->put_Owner((OAHWND)picHead->Handle.ToPointer());
+			
+			// Make the preview video fill our window
+			GetClientRect((HWND)picHead->Handle.ToPointer(), &rc);
+			CVComment->pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
+
+			// Set video window style
+			hr = CVComment->pVW->put_WindowStyle(WS_CHILD | WS_CLIPCHILDREN);
+
+			// Make the video window visible, now that it is properly positioned
+			hr = CVComment->pVW->put_Visible(OATRUE);
+		}
+
+
+		HRESULT InitPriviewVideoFilter(){
 			
 			IBaseFilter *pBaseFilter = NULL;
 			IBindCtx *pContext = NULL;
+//			IMoniker **ppMoniker = NULL; 
+//			IFilterGraph2 **ppGraph = NULL; 
+//			ICaptureGraphBuilder2 **ppCapture = NULL;
+
+			cli::pin_ptr<IMoniker *> ppMoniker= &CVComment->pMoniker;
+			cli::pin_ptr<IFilterGraph2 *> ppGraph= &CVComment->pGraph;
+			cli::pin_ptr<ICaptureGraphBuilder2 *> ppCapture= &CVComment->pCapture;
 
 			// Get the display name of the moniker
-			LPOLESTR strMonikerName=0;
-			hr = pMoniker->GetDisplayName(NULL, NULL, &strMonikerName);
+			LPOLESTR strMonikerName = 0;
+			hr = CVComment->pMoniker->GetDisplayName(NULL, NULL, &strMonikerName);
 			if (FAILED(hr)){
 				MessageBox::Show("GetDisplayName failed!");
 				return hr;
@@ -767,8 +702,8 @@ hr = pCapture->SetOutputFileName(
 				 return hr;
 			}
   
-			hr = pGraph->AddSourceFilterForMoniker(
-				pMoniker, 
+			hr = CVComment->pGraph->AddSourceFilterForMoniker(
+				*ppMoniker, 
 				pContext, 
                 strMonikerName, 
 				&pBaseFilter);
@@ -778,7 +713,7 @@ hr = pCapture->SetOutputFileName(
 			}
 
 			// Attach the filter graph to the capture graph
-			hr = pCapture->SetFiltergraph(pGraph);
+			hr = CVComment->pCapture->SetFiltergraph(*ppGraph);
 			if (FAILED(hr)){
 				MessageBox::Show("SetFiltergraph failed!");
 				return hr;
@@ -786,7 +721,7 @@ hr = pCapture->SetOutputFileName(
 
 			// Render the preview pin on the video capture filter
 			// Use this instead of g_pGraph->RenderFile
-			hr = pCapture->RenderStream (
+			hr = CVComment->pCapture->RenderStream (
 				&PIN_CATEGORY_PREVIEW, 
 				&MEDIATYPE_Video,
                 pBaseFilter, 
@@ -799,11 +734,13 @@ hr = pCapture->SetOutputFileName(
 
 
 
-		HRESULT InitGraphFilterInstance(IFilterGraph2 **ppGraph, ICaptureGraphBuilder2 **ppCapture){
+		HRESULT InitGraphFilterInstance(){
 			
 			HRESULT hr;
-			IFilterGraph2 *pGraph = NULL;
-			ICaptureGraphBuilder2 *pCapture = NULL;
+			cli::pin_ptr<IFilterGraph2 *> ppGraph = &CVComment->pGraph;
+			cli::pin_ptr<ICaptureGraphBuilder2 *> ppCapture = &CVComment->pCapture;
+			cli::pin_ptr<IVideoWindow *> ppVW = &CVComment->pVW;
+			cli::pin_ptr<IMediaControl *> ppMC = &CVComment->pMC;
 			
 			if(!ppGraph || !ppCapture){
 				return E_POINTER;
@@ -813,27 +750,46 @@ hr = pCapture->SetOutputFileName(
 				NULL, 
 				CLSCTX_INPROC,
                 IID_IFilterGraph2, 
-				(void **) &pGraph
+				(void **) ppGraph
 				);
 			if (FAILED(hr)){
 				MessageBox::Show("Initial IFilterGraph2 failed!");
 				return E_NOINTERFACE;
-			}
-			*ppGraph = pGraph;	
+			}	
 			
+	
+
 			// Create the capture graph builder
 			 hr = CoCreateInstance (
 				 CLSID_CaptureGraphBuilder2, 
 				 NULL, 
 				 CLSCTX_INPROC,
                  IID_ICaptureGraphBuilder2, 
-				 (void **) &pCapture
+				 (void **) ppCapture
 				 );
 			 if (FAILED(hr)){
 				 MessageBox::Show("Initial ICaptureGraphBuilder2 failed!");
 				 return E_NOINTERFACE;
 			 }
-			 *ppCapture = pCapture;	
+
+			 hr = CVComment->pGraph->QueryInterface(IID_IMediaControl,(LPVOID *) ppMC);
+			 if (FAILED(hr)){
+				MessageBox::Show("Initial IMediaControl failed!");
+				return E_NOINTERFACE;
+			 }
+			 
+			 hr = CVComment->pGraph->QueryInterface(IID_IVideoWindow, (LPVOID *) ppVW);
+			 if (FAILED(hr)){
+				MessageBox::Show("Initial IVideoWindow failed!");
+				return E_NOINTERFACE;
+			 }						
+			 /*
+			 hr = pGraph->QueryInterface(IID_IMediaEvent, (LPVOID *) &pME);
+			 if (FAILED(hr)){
+				MessageBox::Show("Initial IMediaEventEx failed!");
+				return E_NOINTERFACE;
+			 }
+			 */
 			 
 			 return S_OK;
 		}
@@ -841,15 +797,11 @@ hr = pCapture->SetOutputFileName(
 
 
 
-//		HRESULT FindCaptureDevice(IMoniker **ppMoniker){
+
 		HRESULT FindCaptureDevice(){
 					HRESULT hr;
-					IBaseFilter *pSrc = NULL;
-					IMoniker *pMoniker =NULL;
+					
 					ULONG cFetched;
-
-//					if (!ppMoniker)
-//						return E_POINTER;
 	
 					// Create the system device enumerator
 					ICreateDevEnum *pDevEnum =NULL;
@@ -898,9 +850,9 @@ hr = pCapture->SetOutputFileName(
 					if (S_OK == (pClassEnum->Next (1, ppMoniker, &cFetched))){
 						// Bind Moniker to a filter object
 						IPropertyBag *pPropBag = NULL;
-						hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropBag);
+						hr = CVComment->pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropBag);
 								if (FAILED(hr)){
-									pMoniker->Release();
+									CVComment->pMoniker->Release();
 									return E_NOINTERFACE;  
 								} 
 								
@@ -940,7 +892,6 @@ hr = pCapture->SetOutputFileName(
 					// Copy the found filter pointer to the output parameter.
 					// Do NOT Release() the reference, since it will still be used
 					// by the calling function.
-//					*ppMoniker = pMoniker;
 
 					return hr;
 			}
