@@ -36,7 +36,7 @@ namespace eIDIssueManageGUI {
 		{
 //			formLogIn = gcnew FormLogIn();
 			formRegActive = gcnew FormRegActive();
-			
+			strIDName = "";
 			InitializeComponent();
 			//
 			//TODO: 在此处添加构造函数代码
@@ -166,20 +166,32 @@ namespace eIDIssueManageGUI {
 			this->Text = L"eID发行管理应用";
 			this->TopMost = true;
 			this->Load += gcnew System::EventHandler(this, &FormMain::FormMain_Load);
+
+			this->Closed += gcnew System::EventHandler(this, &FormMain::FormMain_Closed);
+			
+
 			this->ResumeLayout(false);
 
 		}
 #pragma endregion
+
+	private: System::Void FormMain_Closed(System::Object^  sender, System::EventArgs^  e) {
+				this->Owner->Activate();
+				this->Owner->Show();
+			}
+
 	private: System::Void FormMain_Load(System::Object^  sender, System::EventArgs^  e) {
-//				 this->Hide();
-//				 formLogIn->Activate();
-//				 formLogIn->ShowDialog(this);
+
+				 
 
 			 }
 	private: System::Void btnMainExit_Click(System::Object^  sender, System::EventArgs^  e) {
 				 this->Close();
 			 }
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
+				 
+				 strIDName = "Test for global!";
+
 				 this->Hide();
 				 formRegActive->Activate();
 				 formRegActive->ShowDialog(this);
