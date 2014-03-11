@@ -2,6 +2,7 @@
 
 //#include <uuids.h>
 //#include <strsafe.h>
+#include "DirectXComment.h"
 
 
 using namespace System;
@@ -15,7 +16,7 @@ using namespace System::Drawing::Imaging;
 
 
 
-#define WM_VIDEOWINDOSW WM_APP+1
+
 
 namespace eIDIssueManageGUI {
 
@@ -29,20 +30,7 @@ namespace eIDIssueManageGUI {
 	///          本地化资源正确交互。
 	/// </summary>
 
-	public ref class CaptureVideoComment{
-	public:
-		IBaseFilter *pBaseFilter;
-					 IVideoWindow  *pVW;
-					 IMediaControl *pMC;
-//					 IMediaEventEx *pME = NULL;
-					 IFilterGraph2 *pGraph;
-					 ICaptureGraphBuilder2 *pCapture;
-					 IMoniker *pMoniker;
-
-		
-
-					 
-	};
+	
 
 	public ref class FormRegActive : public System::Windows::Forms::Form
 	{
@@ -62,10 +50,16 @@ namespace eIDIssueManageGUI {
 		String^ strCaptureDevName;
 		
 		CaptureVideoComment^ CVComment;
+
+		Bitmap^ bitmap;
     
 
 	private: System::Windows::Forms::Button^  btnCaptureIDInfo;
 	private: System::Windows::Forms::Button^  btnCaptureHeadPic;
+	private: System::Windows::Forms::PictureBox^  picCapture;
+
+	private: System::Windows::Forms::Label^  label11;
+
 
 	
 		
@@ -75,7 +69,7 @@ namespace eIDIssueManageGUI {
 
 	public: 
 
-		const char* CAPTUREDEVNAME;
+//		const char* CAPTUREDEVNAME;
 
 		FormRegActive(void)
 		{
@@ -87,9 +81,11 @@ namespace eIDIssueManageGUI {
 
 			strInfoMessage = "";
 //			CAPTUREDEVNAME = "USB 视频设备";
-			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
+//			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
 
 			CVComment = gcnew CaptureVideoComment(); 
+
+			bitmap = gcnew Bitmap("e:\\Bitmap00000.bmp");
 			
 			InitializeComponent();
 			//
@@ -108,7 +104,9 @@ namespace eIDIssueManageGUI {
 				delete components;
 			}
 		}
-	private: System::Windows::Forms::PictureBox^  picHead;
+	private: System::Windows::Forms::PictureBox^  picPriview;
+	protected: 
+
 	private: System::Windows::Forms::Label^  label1;
 	private: System::Windows::Forms::TextBox^  textIDName;
 
@@ -153,7 +151,7 @@ namespace eIDIssueManageGUI {
 		void InitializeComponent(void)
 		{
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(FormRegActive::typeid));
-			this->picHead = (gcnew System::Windows::Forms::PictureBox());
+			this->picPriview = (gcnew System::Windows::Forms::PictureBox());
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->textIDName = (gcnew System::Windows::Forms::TextBox());
 			this->label2 = (gcnew System::Windows::Forms::Label());
@@ -174,19 +172,22 @@ namespace eIDIssueManageGUI {
 			this->btnRegActive = (gcnew System::Windows::Forms::Button());
 			this->btnCaptureIDInfo = (gcnew System::Windows::Forms::Button());
 			this->btnCaptureHeadPic = (gcnew System::Windows::Forms::Button());
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picHead))->BeginInit();
+			this->picCapture = (gcnew System::Windows::Forms::PictureBox());
+			this->label11 = (gcnew System::Windows::Forms::Label());
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picPriview))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picCapture))->BeginInit();
 			this->SuspendLayout();
 			// 
-			// picHead
+			// picPriview
 			// 
-			this->picHead->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
-			this->picHead->BackColor = System::Drawing::SystemColors::Control;
-			this->picHead->Location = System::Drawing::Point(380, 12);
-			this->picHead->Name = L"picHead";
-			this->picHead->Size = System::Drawing::Size(240, 340);
-			this->picHead->TabIndex = 0;
-			this->picHead->TabStop = false;
-			this->picHead->Tag = L"";
+			this->picPriview->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
+			this->picPriview->BackColor = System::Drawing::SystemColors::Control;
+			this->picPriview->Location = System::Drawing::Point(380, 225);
+			this->picPriview->Name = L"picPriview";
+			this->picPriview->Size = System::Drawing::Size(240, 180);
+			this->picPriview->TabIndex = 0;
+			this->picPriview->TabStop = false;
+			this->picPriview->Tag = L"";
 			// 
 			// label1
 			// 
@@ -384,7 +385,7 @@ namespace eIDIssueManageGUI {
 			// 
 			// btnRegActive
 			// 
-			this->btnRegActive->Location = System::Drawing::Point(294, 411);
+			this->btnRegActive->Location = System::Drawing::Point(226, 411);
 			this->btnRegActive->Name = L"btnRegActive";
 			this->btnRegActive->Size = System::Drawing::Size(75, 23);
 			this->btnRegActive->TabIndex = 18;
@@ -406,7 +407,7 @@ namespace eIDIssueManageGUI {
 			// btnCaptureHeadPic
 			// 
 			this->btnCaptureHeadPic->Enabled = false;
-			this->btnCaptureHeadPic->Location = System::Drawing::Point(444, 374);
+			this->btnCaptureHeadPic->Location = System::Drawing::Point(441, 411);
 			this->btnCaptureHeadPic->Name = L"btnCaptureHeadPic";
 			this->btnCaptureHeadPic->Size = System::Drawing::Size(128, 23);
 			this->btnCaptureHeadPic->TabIndex = 20;
@@ -414,12 +415,36 @@ namespace eIDIssueManageGUI {
 			this->btnCaptureHeadPic->UseVisualStyleBackColor = true;
 			this->btnCaptureHeadPic->Click += gcnew System::EventHandler(this, &FormRegActive::btnCaptureHeadPic_Click);
 			// 
+			// picCapture
+			// 
+			this->picCapture->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
+			this->picCapture->BackColor = System::Drawing::SystemColors::Control;
+			this->picCapture->Location = System::Drawing::Point(380, 12);
+			this->picCapture->Name = L"picCapture";
+			this->picCapture->Size = System::Drawing::Size(240, 180);
+			this->picCapture->TabIndex = 21;
+			this->picCapture->TabStop = false;
+			this->picCapture->Tag = L"";
+			// 
+			// label11
+			// 
+			this->label11->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(134)));
+			this->label11->Location = System::Drawing::Point(449, 195);
+			this->label11->Name = L"label11";
+			this->label11->Size = System::Drawing::Size(84, 23);
+			this->label11->TabIndex = 23;
+			this->label11->Text = L"视频预览";
+			this->label11->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			// 
 			// FormRegActive
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(96, 96);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Dpi;
 			this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->ClientSize = System::Drawing::Size(632, 446);
+			this->Controls->Add(this->label11);
+			this->Controls->Add(this->picCapture);
 			this->Controls->Add(this->btnCaptureHeadPic);
 			this->Controls->Add(this->btnCaptureIDInfo);
 			this->Controls->Add(this->btnRegActive);
@@ -438,22 +463,20 @@ namespace eIDIssueManageGUI {
 			this->Controls->Add(this->textIDSex);
 			this->Controls->Add(this->label3);
 			this->Controls->Add(this->label2);
-			this->Controls->Add(this->textIDName);
 			this->Controls->Add(this->label1);
-			this->Controls->Add(this->picHead);
+			this->Controls->Add(this->picPriview);
+			this->Controls->Add(this->textIDName);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^  >(resources->GetObject(L"$this.Icon")));
 			this->Name = L"FormRegActive";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 			this->Text = L"注册激活";
 			this->Load += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Load);
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picHead))->EndInit();
-			
-			this->Closed += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Closed); 
+			this->Closed += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Closed);
 			this->Shown += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Shown);
-
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picPriview))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picCapture))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
-			
 
 		}
 #pragma endregion
@@ -470,11 +493,11 @@ namespace eIDIssueManageGUI {
 //					 IFilterGraph2 *pGraph = NULL;
 //					 ICaptureGraphBuilder2 *pCapture = NULL;
 //					 IMoniker *pMoniker =NULL;
-  
 					 
-
 					 
-  
+					 cli::pin_ptr<DWORD> pdwRegister = &CVComment->dwRegister;
+					 
+					 
 					 strInfoMessage = "单击'确定'开始设备查找\r\n单击'取消'返回上一级菜单";
 					 while(1){
 						
@@ -483,6 +506,15 @@ namespace eIDIssueManageGUI {
 							break;
 						}else{
 							bReturnUpForm = false;
+
+							hr = InitGraphFilterInstance();  //Start initialize Graph Filter Manager
+							if(FAILED(hr)){
+								strInfoMessage = "InitGraphFilterInstance failed!";
+								continue;
+							}
+
+							hr = AddToRot(CVComment->pGraph, pdwRegister);
+
 							hr = FindCaptureDevice();
 							if(FAILED(hr)){
 								strInfoMessage = "没有找到设备,请确认设备连接正常\r\n单击'确定'重新查找\r\n单击'取消'返回上一级菜单";	
@@ -490,10 +522,8 @@ namespace eIDIssueManageGUI {
 								if(bCameraConnect){
 									btnCaptureIDInfo->Enabled = true;
 									btnCaptureHeadPic->Enabled = true;
-									hr = InitGraphFilterInstance();
-									if(FAILED(hr)){
-										strInfoMessage = "InitGraphFilterInstance failed!";
-									}else{
+									
+									
 										
 										hr = InitPriviewVideoFilter();
 										if(FAILED(hr)){
@@ -504,11 +534,11 @@ namespace eIDIssueManageGUI {
 
 										hr = CVComment->pMC->Run();
 										
-									
+										
 
 										break;
 
-									}
+									
 										
 								}
 							}
@@ -519,6 +549,7 @@ namespace eIDIssueManageGUI {
 						this->Owner->Show();
 						this->Close();
 					 }
+					 
 				 }
 
 		private: System::Void FormRegActive_Closed(System::Object^  sender, System::EventArgs^  e) {
@@ -527,14 +558,10 @@ namespace eIDIssueManageGUI {
 		}
 
 		private: System::Void FormRegActive_Load(System::Object^  sender, System::EventArgs^  e) {
-			CVComment->pBaseFilter = NULL;
-			CVComment->pCapture = NULL;
-			CVComment->pGraph = NULL;
-			CVComment->pMC = NULL;
-			CVComment->pMoniker = NULL;
-			CVComment->pVW = NULL;
+			
 		
-					 
+			
+			
 			}
 
 		private: System::Void FormRegActive_InitializeComponent() {
@@ -548,7 +575,20 @@ namespace eIDIssueManageGUI {
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
 			 }
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
+			 
+			 CVComment->pMC->Stop();
+			 CVComment->pMC->Release();
+			 CVComment->pVW->Release();
+			 CVComment->pCapture->Release();
+			 CVComment->pGraph->Release();
+			 CVComment->pMoniker->Release();
+			 CoUninitialize();
 
+			 RemoveFromRot(CVComment->dwRegister);
+
+			 picCapture->Image = dynamic_cast<Bitmap^>(bitmap);
+			 
+			 
 		 }
 
 		 
@@ -656,14 +696,65 @@ hr = pCapture->SetOutputFileName(
 
 		}
 
+
+		HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister) 
+{
+    IMoniker * pMoniker = NULL;
+    IRunningObjectTable *pROT = NULL;
+
+    if (FAILED(GetRunningObjectTable(0, &pROT))) 
+    {
+        return E_FAIL;
+    }
+    
+    const size_t STRING_LENGTH = 256;
+
+    WCHAR wsz[STRING_LENGTH];
+ 
+   StringCchPrintfW(
+        wsz, STRING_LENGTH, 
+        L"FilterGraph %08x pid %08x", 
+        (DWORD_PTR)pUnkGraph, 
+        GetCurrentProcessId()
+        );
+    
+    HRESULT hr = CreateItemMoniker(L"!", wsz, &pMoniker);
+    if (SUCCEEDED(hr)) 
+    {
+        hr = pROT->Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, pUnkGraph,
+            pMoniker, pdwRegister);
+        pMoniker->Release();
+    }
+    pROT->Release();
+    
+    return hr;
+}
+
+
+		void RemoveFromRot(DWORD pdwRegister)
+{
+    IRunningObjectTable *pROT;
+    if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
+        pROT->Revoke(pdwRegister);
+        pROT->Release();
+    }
+}
+
+
+		HRESULT SetMuxFilter(){
+//			IBaseFileter *pMuxBaseFilter = NULL;
+			return hr;
+		}
+
+
 		void SetVideoWindows(){
 			
 			RECT rc;
 
-			hr = CVComment->pVW->put_Owner((OAHWND)picHead->Handle.ToPointer());
+			hr = CVComment->pVW->put_Owner((OAHWND)picPriview->Handle.ToPointer());
 			
 			// Make the preview video fill our window
-			GetClientRect((HWND)picHead->Handle.ToPointer(), &rc);
+			GetClientRect((HWND)picPriview->Handle.ToPointer(), &rc);
 			CVComment->pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
 
 			// Set video window style
@@ -748,7 +839,8 @@ hr = pCapture->SetOutputFileName(
 			hr = CoCreateInstance (
 				CLSID_FilterGraph, 
 				NULL, 
-				CLSCTX_INPROC,
+//				CLSCTX_INPROC,
+				CLSCTX_INPROC_SERVER,   //for add grephedit
                 IID_IFilterGraph2, 
 				(void **) ppGraph
 				);
@@ -896,9 +988,88 @@ hr = pCapture->SetOutputFileName(
 					return hr;
 			}
 
+  /*
+
+		HRESULT StartCaptureBmp(){
+			HRESULT hr=0;
+    //取得当前所连接媒体的类型
+    AM_MEDIA_TYPE mt; 
+    hr = pGrabber->GetConnectedMediaType(&mt); 
+    // Examine the format block.
+    VIDEOINFOHEADER *pVih; 
+    if ((mt.formattype == FORMAT_VideoInfo) && 
+    (mt.cbFormat >= sizeof(VIDEOINFOHEADER)) && 
+    (mt.pbFormat != NULL) ) 
+    { 
+    pVih = (VIDEOINFOHEADER*)mt.pbFormat; 
+    } 
+    else 
+    { 
+    // Wrong format. Free the format block and return an error.
+    return VFW_E_INVALIDMEDIATYPE; 
+    }
+    // Set one-shot mode and buffering.
+    hr = pGrabber->SetOneShot(TRUE);
+if (SUCCEEDED(pGrabber->SetBufferSamples(TRUE)))
+	{
+        bool pass = false;
+        m_pMC->Run();
+        long EvCode=0; 
+        hr = pEvent->WaitForCompletion( INFINITE, &EvCode ); 
+        //find the required buffer size
+        long cbBuffer = 0;
+        if (SUCCEEDED(pGrabber->GetCurrentBuffer(&cbBuffer, NULL)))
+{
+            //Allocate the array and call the method a second time to copy the buffer:
+            char *pBuffer = new char[cbBuffer];
+            if (!pBuffer) 
+         	{
+            // Out of memory. Return an error code.
+	        AfxMessageBox(_T("Out of Memory"));
+            }
+            hr = pGrabber->GetCurrentBuffer(&cbBuffer, (long*)(pBuffer));
+            //写到BMP文件中
+            HANDLE hf = CreateFile(LPCTSTR(outFile), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, 0, NULL);
+            if (hf == INVALID_HANDLE_VALUE)
+            {
+             return 0;
+            }
+
+            // Write the file header.
+            BITMAPFILEHEADER bfh;
+            ZeroMemory(&bfh, sizeof(bfh));
+            bfh.bfType = 'MB';  // Little-endian for "MB".
+            bfh.bfSize = sizeof( bfh ) + cbBuffer + sizeof(BITMAPINFOHEADER);
+            bfh.bfOffBits = sizeof( BITMAPFILEHEADER ) + sizeof(BITMAPINFOHEADER);
+            DWORD dwWritten = 0;
+            WriteFile( hf, &bfh, sizeof( bfh ), &dwWritten, NULL );
+
+            // Write the bitmap format
+            BITMAPINFOHEADER bih; 
+            ZeroMemory(&bih, sizeof(bih));
+            bih.biSize = sizeof( bih ); 
+bih.biWidth = pVih->bmiHeader.biWidth; 
+            bih.biHeight = pVih->bmiHeader.biHeight; 
+            bih.biPlanes = pVih->bmiHeader.biPlanes; 
+            bih.biBitCount = pVih->bmiHeader.biBitCount; 
+            dwWritten = 0; 
+            WriteFile(hf, &bih, sizeof(bih), &dwWritten, NULL);        
+
+            //write the bitmap bits
+            dwWritten = 0; 
+            WriteFile( hf, pBuffer, cbBuffer, &dwWritten, NULL );
+            CloseHandle( hf );
+            pass = true;
+    	}
+return pass;
+
+	}     
+	hr = pGrabber->SetOneShot(FALSE); 
+
+}
 
 
-			
+	*/	
 
 		 
 									
