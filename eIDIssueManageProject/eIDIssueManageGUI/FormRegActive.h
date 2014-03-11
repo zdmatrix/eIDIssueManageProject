@@ -16,8 +16,6 @@ using namespace System::Drawing::Imaging;
 
 
 
-
-
 namespace eIDIssueManageGUI {
 
 	/// <summary>
@@ -48,11 +46,16 @@ namespace eIDIssueManageGUI {
 
 		String^ strInfoMessage;
 		String^ strCaptureDevName;
+
+		const char* CAPTUREDEVNAME;
 		
 		CaptureVideoComment^ CVComment;
+//		CSampleGrabberCB^ CB;
+		CSampleGrabberCB *CB;
 
 		Bitmap^ bitmap;
-    
+		
+		
 
 	private: System::Windows::Forms::Button^  btnCaptureIDInfo;
 	private: System::Windows::Forms::Button^  btnCaptureHeadPic;
@@ -61,15 +64,10 @@ namespace eIDIssueManageGUI {
 	private: System::Windows::Forms::Label^  label11;
 
 
-	
-		
-		
-
-		
 
 	public: 
 
-//		const char* CAPTUREDEVNAME;
+		
 
 		FormRegActive(void)
 		{
@@ -81,11 +79,12 @@ namespace eIDIssueManageGUI {
 
 			strInfoMessage = "";
 //			CAPTUREDEVNAME = "USB ÊÓÆµÉè±¸";
-//			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
+			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
 
-			CVComment = gcnew CaptureVideoComment(); 
+			CVComment = gcnew CaptureVideoComment();
+			CB = new CSampleGrabberCB();
 
-			bitmap = gcnew Bitmap("e:\\Bitmap00000.bmp");
+			bitmap = gcnew Bitmap("e:\\1.bmp");
 			
 			InitializeComponent();
 			//
@@ -586,6 +585,8 @@ private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::Ev
 
 			 RemoveFromRot(CVComment->dwRegister);
 
+			 CB->Height = 100;
+
 			 picCapture->Image = dynamic_cast<Bitmap^>(bitmap);
 			 
 			 
@@ -594,6 +595,8 @@ private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::Ev
 		 
 
 private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::EventArgs^  e) {
+
+			 MessageBox::Show(CB->Height.ToString());
 
 /*			
 			

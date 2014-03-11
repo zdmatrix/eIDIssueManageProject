@@ -9,6 +9,7 @@
 
 //#include <atlbase.h>
 #include <Strsafe.h>
+#include <qedit.h>
 
 
 
