@@ -4,6 +4,8 @@
 //#include <strsafe.h>
 #include "DirectXComment.h"
 
+#define HED
+
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -78,13 +80,15 @@ namespace eIDIssueManageGUI {
 			bReturnUpForm = false;
 
 			strInfoMessage = "";
-//			CAPTUREDEVNAME = "USB 视频设备";
+#ifdef	HED
+			CAPTUREDEVNAME = "USB 视频设备";
+#else
 			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
-
+#endif
 			CVComment = gcnew CaptureVideoComment();
 			CB = new CSampleGrabberCB();
 
-			bitmap = gcnew Bitmap("e:\\1.bmp");
+			bitmap = gcnew Bitmap("e:\\Bitmap00000.bmp");
 			
 			InitializeComponent();
 			//
@@ -572,9 +576,13 @@ namespace eIDIssueManageGUI {
 
 			 }
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
+				 RemoveFromRot(CVComment->dwRegister);
 			 }
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
+
+			 CaptureBitmap();
 			 
+			 /*			 
 			 CVComment->pMC->Stop();
 			 CVComment->pMC->Release();
 			 CVComment->pVW->Release();
@@ -588,7 +596,7 @@ private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::Ev
 			 CB->Height = 100;
 
 			 picCapture->Image = dynamic_cast<Bitmap^>(bitmap);
-			 
+*/			 
 			 
 		 }
 
@@ -700,48 +708,46 @@ hr = pCapture->SetOutputFileName(
 		}
 
 
-		HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister) 
-{
-    IMoniker * pMoniker = NULL;
-    IRunningObjectTable *pROT = NULL;
+		HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister){
+			IMoniker * pMoniker = NULL;
+			IRunningObjectTable *pROT = NULL;
 
-    if (FAILED(GetRunningObjectTable(0, &pROT))) 
-    {
-        return E_FAIL;
-    }
-    
-    const size_t STRING_LENGTH = 256;
+			if (FAILED(GetRunningObjectTable(0, &pROT))) 
+			{
+				return E_FAIL;
+			}
+		    
+			const size_t STRING_LENGTH = 256;
 
-    WCHAR wsz[STRING_LENGTH];
- 
-   StringCchPrintfW(
-        wsz, STRING_LENGTH, 
-        L"FilterGraph %08x pid %08x", 
-        (DWORD_PTR)pUnkGraph, 
-        GetCurrentProcessId()
-        );
-    
-    HRESULT hr = CreateItemMoniker(L"!", wsz, &pMoniker);
-    if (SUCCEEDED(hr)) 
-    {
-        hr = pROT->Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, pUnkGraph,
-            pMoniker, pdwRegister);
-        pMoniker->Release();
-    }
-    pROT->Release();
-    
-    return hr;
-}
+			WCHAR wsz[STRING_LENGTH];
+		 
+		   StringCchPrintfW(
+				wsz, STRING_LENGTH, 
+				L"FilterGraph %08x pid %08x", 
+				(DWORD_PTR)pUnkGraph, 
+				GetCurrentProcessId()
+				);
+		    
+			HRESULT hr = CreateItemMoniker(L"!", wsz, &pMoniker);
+			if (SUCCEEDED(hr)) 
+			{
+				hr = pROT->Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, pUnkGraph,
+					pMoniker, pdwRegister);
+				pMoniker->Release();
+			}
+			pROT->Release();
+		    
+			return hr;
+		}
 
 
-		void RemoveFromRot(DWORD pdwRegister)
-{
-    IRunningObjectTable *pROT;
-    if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
-        pROT->Revoke(pdwRegister);
-        pROT->Release();
-    }
-}
+		void RemoveFromRot(DWORD pdwRegister){
+			IRunningObjectTable *pROT;
+			if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
+				pROT->Revoke(pdwRegister);
+				pROT->Release();
+			}
+		}
 
 
 		HRESULT SetMuxFilter(){
@@ -796,6 +802,7 @@ hr = pCapture->SetOutputFileName(
 				 return hr;
 			}
   
+			
 			hr = CVComment->pGraph->AddSourceFilterForMoniker(
 				*ppMoniker, 
 				pContext, 
@@ -821,9 +828,10 @@ hr = pCapture->SetOutputFileName(
                 pBaseFilter, 
 				NULL, 
 				NULL);
-			hr = S_OK;
+			
 			return hr;
-		}
+
+			}
 
 
 
@@ -894,82 +902,82 @@ hr = pCapture->SetOutputFileName(
 
 
 		HRESULT FindCaptureDevice(){
-					HRESULT hr;
+			HRESULT hr;
+			
+			ULONG cFetched;
+
+			// Create the system device enumerator
+			ICreateDevEnum *pDevEnum =NULL;
+
+			hr = CoCreateInstance (
+				CLSID_SystemDeviceEnum, 
+				NULL, 
+				CLSCTX_INPROC,
+                IID_ICreateDevEnum, 
+				(void **) &pDevEnum
+				);
+			if (FAILED(hr)){
+				MessageBox::Show("Couldn't create system enumerator!");
+				return E_NOINTERFACE;
+			}
+
+			// Create an enumerator for the video capture devices
+			IEnumMoniker *pClassEnum = NULL;
+
+			hr = pDevEnum->CreateClassEnumerator(
+				CLSID_VideoInputDeviceCategory, 
+				&pClassEnum, 
+				0
+				);
+			if (FAILED(hr)){
+				MessageBox::Show("Couldn't create class enumerator!");
+				return E_NOINTERFACE;
+			}
+
+			// If there are no enumerators for the requested type, then 
+			// CreateClassEnumerator will succeed, but pClassEnum will be NULL.
+			if (pClassEnum == NULL){
+				MessageBox::Show("No video capture device was detected.\r\n\r\n	  \
+						This sample requires a video capture device, such as a USB WebCam,\r\n \
+						to be installed and working properly.  The sample will now close. \
+						No Video Capture Hardware");
+				return E_FAIL;
+			}
+
+			cli::pin_ptr<IMoniker *> ppMoniker = &CVComment->pMoniker;
+
+			// Use the first video capture device on the device list.
+			// Note that if the Next() call succeeds but there are no monikers,
+			// it will return S_FALSE (which is not a failure).  Therefore, we
+			// check that the return code is S_OK instead of using SUCCEEDED() macro.
+			if (S_OK == (pClassEnum->Next (1, ppMoniker, &cFetched))){
+				// Bind Moniker to a filter object
+				IPropertyBag *pPropBag = NULL;
+				hr = CVComment->pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropBag);
+					if (FAILED(hr)){
+						CVComment->pMoniker->Release();
+						return E_NOINTERFACE;  
+					} 
 					
-					ULONG cFetched;
-	
-					// Create the system device enumerator
-					ICreateDevEnum *pDevEnum =NULL;
+					VARIANT var;
+					VariantInit(&var);
 
-					hr = CoCreateInstance (
-						CLSID_SystemDeviceEnum, 
-						NULL, 
-						CLSCTX_INPROC,
-                        IID_ICreateDevEnum, 
-						(void **) &pDevEnum
-						);
+					// Get description or friendly name.
+					hr = pPropBag->Read(L"Description", &var, 0);
 					if (FAILED(hr)){
-						MessageBox::Show("Couldn't create system enumerator!");
-						return E_NOINTERFACE;
+						hr = pPropBag->Read(L"FriendlyName", &var, 0);
 					}
+					if (SUCCEEDED(hr)){
+						strCaptureDevName = String(var.bstrVal).ToString();
+						if(!strCaptureDevName->CompareTo(String(CAPTUREDEVNAME).ToString())){
+							bCameraConnect = true;
+							hr = S_OK;
+						}else{
+							hr = E_FAIL;
+							return hr;
+						}
 
-					// Create an enumerator for the video capture devices
-					IEnumMoniker *pClassEnum = NULL;
-
-					hr = pDevEnum->CreateClassEnumerator(
-						CLSID_VideoInputDeviceCategory, 
-						&pClassEnum, 
-						0
-						);
-					if (FAILED(hr)){
-						MessageBox::Show("Couldn't create class enumerator!");
-						return E_NOINTERFACE;
 					}
-
-					// If there are no enumerators for the requested type, then 
-					// CreateClassEnumerator will succeed, but pClassEnum will be NULL.
-					if (pClassEnum == NULL){
-						MessageBox::Show("No video capture device was detected.\r\n\r\n	  \
-								This sample requires a video capture device, such as a USB WebCam,\r\n \
-								to be installed and working properly.  The sample will now close. \
-								No Video Capture Hardware");
-						return E_FAIL;
-					}
-
-					cli::pin_ptr<IMoniker *> ppMoniker = &CVComment->pMoniker;
-
-					// Use the first video capture device on the device list.
-					// Note that if the Next() call succeeds but there are no monikers,
-					// it will return S_FALSE (which is not a failure).  Therefore, we
-					// check that the return code is S_OK instead of using SUCCEEDED() macro.
-					if (S_OK == (pClassEnum->Next (1, ppMoniker, &cFetched))){
-						// Bind Moniker to a filter object
-						IPropertyBag *pPropBag = NULL;
-						hr = CVComment->pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropBag);
-								if (FAILED(hr)){
-									CVComment->pMoniker->Release();
-									return E_NOINTERFACE;  
-								} 
-								
-								VARIANT var;
-								VariantInit(&var);
-
-								// Get description or friendly name.
-								hr = pPropBag->Read(L"Description", &var, 0);
-								if (FAILED(hr)){
-									hr = pPropBag->Read(L"FriendlyName", &var, 0);
-								}
-								if (SUCCEEDED(hr)){
-									strCaptureDevName = String(var.bstrVal).ToString();
-									if(!strCaptureDevName->CompareTo(String(CAPTUREDEVNAME).ToString())){
-										bCameraConnect = true;
-										hr = S_OK;
-									}else{
-										hr = E_FAIL;
-										return hr;
-									}
-
-								}
 
 //								hr = pPropBag->Read(L"DevicePath", &var, 0);
 //								if (SUCCEEDED(hr)){
@@ -977,104 +985,89 @@ hr = pCapture->SetOutputFileName(
 //									VariantClear(&var); 
 //								}
 
-								pPropBag->Release();
+					pPropBag->Release();
 
-					}else{
-						MessageBox::Show("Unable to access video capture device!");   
-						return E_FAIL;
-					}
-
-					// Copy the found filter pointer to the output parameter.
-					// Do NOT Release() the reference, since it will still be used
-					// by the calling function.
-
-					return hr;
+			}else{
+				MessageBox::Show("Unable to access video capture device!");   
+				return E_FAIL;
 			}
 
-  /*
+			// Copy the found filter pointer to the output parameter.
+			// Do NOT Release() the reference, since it will still be used
+			// by the calling function.
 
-		HRESULT StartCaptureBmp(){
-			HRESULT hr=0;
-    //取得当前所连接媒体的类型
-    AM_MEDIA_TYPE mt; 
-    hr = pGrabber->GetConnectedMediaType(&mt); 
-    // Examine the format block.
-    VIDEOINFOHEADER *pVih; 
-    if ((mt.formattype == FORMAT_VideoInfo) && 
-    (mt.cbFormat >= sizeof(VIDEOINFOHEADER)) && 
-    (mt.pbFormat != NULL) ) 
-    { 
-    pVih = (VIDEOINFOHEADER*)mt.pbFormat; 
-    } 
-    else 
-    { 
-    // Wrong format. Free the format block and return an error.
-    return VFW_E_INVALIDMEDIATYPE; 
-    }
-    // Set one-shot mode and buffering.
-    hr = pGrabber->SetOneShot(TRUE);
-if (SUCCEEDED(pGrabber->SetBufferSamples(TRUE)))
-	{
-        bool pass = false;
-        m_pMC->Run();
-        long EvCode=0; 
-        hr = pEvent->WaitForCompletion( INFINITE, &EvCode ); 
-        //find the required buffer size
-        long cbBuffer = 0;
-        if (SUCCEEDED(pGrabber->GetCurrentBuffer(&cbBuffer, NULL)))
-{
-            //Allocate the array and call the method a second time to copy the buffer:
-            char *pBuffer = new char[cbBuffer];
-            if (!pBuffer) 
-         	{
-            // Out of memory. Return an error code.
-	        AfxMessageBox(_T("Out of Memory"));
-            }
-            hr = pGrabber->GetCurrentBuffer(&cbBuffer, (long*)(pBuffer));
-            //写到BMP文件中
-            HANDLE hf = CreateFile(LPCTSTR(outFile), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, 0, NULL);
-            if (hf == INVALID_HANDLE_VALUE)
-            {
-             return 0;
-            }
+			return hr;
+		}
+	
 
-            // Write the file header.
-            BITMAPFILEHEADER bfh;
-            ZeroMemory(&bfh, sizeof(bfh));
-            bfh.bfType = 'MB';  // Little-endian for "MB".
-            bfh.bfSize = sizeof( bfh ) + cbBuffer + sizeof(BITMAPINFOHEADER);
-            bfh.bfOffBits = sizeof( BITMAPFILEHEADER ) + sizeof(BITMAPINFOHEADER);
-            DWORD dwWritten = 0;
-            WriteFile( hf, &bfh, sizeof( bfh ), &dwWritten, NULL );
+			HRESULT CaptureBitmap(){
+				HRESULT hr;
+				IBaseFilter *pGrabberF = NULL;
+				hr = CoCreateInstance(
+					CLSID_SampleGrabber, 
+					NULL, 
+					CLSCTX_INPROC_SERVER,
+					IID_IBaseFilter, 
+					(void**)&pGrabberF
+					);
+				if (FAILED(hr))
+				{
+					return hr;
+				}
+/*
+				hr = CVComment->pCapture->RenderStream (
+				&PIN_CATEGORY_CAPTURE, 
+				&MEDIATYPE_Video,
+                pGrabberF, 
+				NULL, 
+				NULL);
+  */
 
-            // Write the bitmap format
-            BITMAPINFOHEADER bih; 
-            ZeroMemory(&bih, sizeof(bih));
-            bih.biSize = sizeof( bih ); 
-bih.biWidth = pVih->bmiHeader.biWidth; 
-            bih.biHeight = pVih->bmiHeader.biHeight; 
-            bih.biPlanes = pVih->bmiHeader.biPlanes; 
-            bih.biBitCount = pVih->bmiHeader.biBitCount; 
-            dwWritten = 0; 
-            WriteFile(hf, &bih, sizeof(bih), &dwWritten, NULL);        
+				
+				
+				ISampleGrabber *pGrabber;
+				pGrabberF->QueryInterface(IID_ISampleGrabber, (void**)&pGrabber);
 
-            //write the bitmap bits
-            dwWritten = 0; 
-            WriteFile( hf, pBuffer, cbBuffer, &dwWritten, NULL );
-            CloseHandle( hf );
-            pass = true;
-    	}
-return pass;
+				AM_MEDIA_TYPE mt;
+				ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
+				mt.majortype = MEDIATYPE_Video;
+				mt.subtype = MEDIASUBTYPE_RGB24;
+				hr = pGrabber->SetMediaType(&mt);
+				
+				// Find the current bit depth.
+				HDC hdc = GetDC(NULL);
+				int iBitDepth = GetDeviceCaps(hdc, BITSPIXEL);
+				ReleaseDC(NULL, hdc);
 
-	}     
-	hr = pGrabber->SetOneShot(FALSE); 
-
-}
-
-
-	*/	
-
-		 
+				// Set the media type.
+				mt.majortype = MEDIATYPE_Video;
+				switch (iBitDepth)
+				{
+				case 8:
+					mt.subtype = MEDIASUBTYPE_RGB8;
+					break;
+				case 16:
+					mt.subtype = MEDIASUBTYPE_RGB555;
+					break;
+				case 24:
+					mt.subtype = MEDIASUBTYPE_RGB24;
+					break;
+				case 32:
+					mt.subtype = MEDIASUBTYPE_RGB32;
+					break;
+				default:
+					return E_FAIL;
+				}
+				hr = pGrabber->SetMediaType(&mt);
+/*				
+				hr = CVComment->pCapture->RenderStream (
+				&PIN_CATEGORY_CAPTURE, 
+				&MEDIATYPE_Video,
+				CVComment->pGraph, 
+				NULL, 
+				pGrabberF);
+	*/
+			}
 									
 				
 };
