@@ -4,7 +4,7 @@
 //#include <strsafe.h>
 #include "DirectXComment.h"
 
-#define HED
+//#define HED
 
 
 using namespace System;
@@ -42,18 +42,15 @@ namespace eIDIssueManageGUI {
 		bool bCameraConnect;
 		
 		bool bReturnUpForm;
+		int clickcount;
 		HRESULT hr;
 
 		DWORD dwRegister;
 
 		String^ strInfoMessage;
 		String^ strCaptureDevName;
-
-		const char* CAPTUREDEVNAME;
 		
 		CaptureVideoComment^ CVComment;
-//		CSampleGrabberCB^ CB;
-		CSampleGrabberCB *CB;
 
 		Bitmap^ bitmap;
 		
@@ -79,14 +76,10 @@ namespace eIDIssueManageGUI {
 			bCameraConnect = false;
 			bReturnUpForm = false;
 
-			strInfoMessage = "";
-#ifdef	HED
-			CAPTUREDEVNAME = "USB 视频设备";
-#else
-			CAPTUREDEVNAME = "Microsoft LifeCam HD-3000";
-#endif
+			clickcount = 0;
+
 			CVComment = gcnew CaptureVideoComment();
-			CB = new CSampleGrabberCB();
+			
 
 			bitmap = gcnew Bitmap("e:\\Bitmap00000.bmp");
 			
@@ -486,18 +479,9 @@ namespace eIDIssueManageGUI {
 		
 		
 		private: System::Void FormRegActive_Shown(System::Object^  sender, System::EventArgs^  e) {
-					 
-					 ::DialogResult result;
-					 
-					 IBaseFilter *pBaseFilter = NULL;
-//					 IVideoWindow  **ppVW = NULL;
-//					 IMediaControl **ppMC = NULL;
-//					 IMediaEventEx *pME = NULL;
-//					 IFilterGraph2 *pGraph = NULL;
-//					 ICaptureGraphBuilder2 *pCapture = NULL;
-//					 IMoniker *pMoniker =NULL;
-					 
-					 
+				
+					DWORD dwRegister = 0;
+					 ::DialogResult result;					 
 					 cli::pin_ptr<DWORD> pdwRegister = &CVComment->dwRegister;
 					 
 					 
@@ -510,41 +494,36 @@ namespace eIDIssueManageGUI {
 						}else{
 							bReturnUpForm = false;
 
-							hr = InitGraphFilterInstance();  //Start initialize Graph Filter Manager
-							if(FAILED(hr)){
-								strInfoMessage = "InitGraphFilterInstance failed!";
-								continue;
-							}
-
-							hr = AddToRot(CVComment->pGraph, pdwRegister);
-
-							hr = FindCaptureDevice();
+							
+//							hr = AddToRot(CVComment->pGraph, pdwRegister);
+							
+							hr = CVComment->CreatCaptureFilter();
+							
 							if(FAILED(hr)){
 								strInfoMessage = "没有找到设备,请确认设备连接正常\r\n单击'确定'重新查找\r\n单击'取消'返回上一级菜单";	
 							}else{
-								if(bCameraConnect){
-									btnCaptureIDInfo->Enabled = true;
-									btnCaptureHeadPic->Enabled = true;
-									
-									
-										
-										hr = InitPriviewVideoFilter();
-										if(FAILED(hr)){
-											MessageBox::Show("InitPriviewVideoFilter failed!");
-										}
-										
-										SetVideoWindows();
-
-										hr = CVComment->pMC->Run();
-										
-										
-
-										break;
-
-									
-										
+								
+								btnCaptureIDInfo->Enabled = true;
+								btnCaptureHeadPic->Enabled = true;
+								
+								hr = CVComment->BuiltFilterGraph();		//init grabber filter for capture one video frame
+								if(FAILED(hr)){
+									MessageBox::Show("BuiltFilterGraph failed.");
+									continue;
 								}
+
+								SetVideoWindows();
+
+								CVComment->AddToRot(CVComment->pGraphManager, &dwRegister);
+
+//								hr = CVComment->pMC->Run();
+								
+								
+
+								break;					
+								
 							}
+							
 						}
 					 }
 					 if(bReturnUpForm){
@@ -556,14 +535,50 @@ namespace eIDIssueManageGUI {
 				 }
 
 		private: System::Void FormRegActive_Closed(System::Object^  sender, System::EventArgs^  e) {
+					 CVComment->pCapture->Release();
+					 CVComment->pCaptureBaseFilter->Release();
+					 CVComment->pMC->Release();
+					 CVComment->pGrabber->Release();
+					 CVComment->pGrabberBaseFilter->Release();
+					 CVComment->pGraphManager->Release();
+					 CVComment->pME->Release();
+					 CVComment->pNullRender->Release();
+					 CVComment->pVW->Release();
 			this->Owner->Activate();
 			this->Owner->Show();
 		}
 
 		private: System::Void FormRegActive_Load(System::Object^  sender, System::EventArgs^  e) {
-			
-		
-			
+
+					 CVComment->bCaptureDevConnect = false;
+					 CVComment->dwRegister = 0;
+					 CVComment->pCapture = NULL;
+					 CVComment->pCaptureBaseFilter = NULL;
+					 CVComment->pMC = NULL;
+					 CVComment->pGrabber = NULL;
+					 CVComment->pGrabberBaseFilter = NULL;
+					 CVComment->pGraphManager = NULL;
+					 CVComment->pME = NULL;
+					 CVComment->pNullRender = NULL;
+					 CVComment->pVW = NULL;
+
+					 hr = CVComment->GreatFilterGraph();
+					 if (FAILED(hr)){
+						MessageBox::Show("Couldn't GreatFilterGraph!");
+						this->Close();
+					 }
+
+					 hr = CVComment->CreatGrabberFilter();
+					 if (FAILED(hr)){
+						MessageBox::Show("Couldn't CreatGrabberFilter!");
+						this->Close();
+					 }
+
+					 hr = CVComment->CreatNullReanderFilter();
+					 if (FAILED(hr)){
+						MessageBox::Show("Couldn't CreatNullReanderFilter!");
+						this->Close();
+					 }	
 			
 			}
 
@@ -576,27 +591,10 @@ namespace eIDIssueManageGUI {
 
 			 }
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
-				 RemoveFromRot(CVComment->dwRegister);
+
 			 }
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
-
-			 CaptureBitmap();
-			 
-			 /*			 
-			 CVComment->pMC->Stop();
-			 CVComment->pMC->Release();
-			 CVComment->pVW->Release();
-			 CVComment->pCapture->Release();
-			 CVComment->pGraph->Release();
-			 CVComment->pMoniker->Release();
-			 CoUninitialize();
-
-			 RemoveFromRot(CVComment->dwRegister);
-
-			 CB->Height = 100;
-
-			 picCapture->Image = dynamic_cast<Bitmap^>(bitmap);
-*/			 
+ 
 			 
 		 }
 
@@ -604,471 +602,125 @@ private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::Ev
 
 private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::EventArgs^  e) {
 
-			 MessageBox::Show(CB->Height.ToString());
-
-/*			
-			
 			HRESULT hr;
+			clickcount ++;
+	
+//			CSampleGrabberCB CB;
 
-			IVideoWindow  *pVW = NULL;
-			IMediaControl *pMC = NULL;
-			IMediaEventEx *pME = NULL;
-			IFilterGraph2 *pGraph = NULL;
-			ICaptureGraphBuilder2 *pCapture = NULL;
-			IBaseFilter *pCapDevBaseFilter = NULL;
-			IMoniker *pMoniker =NULL;
-		
+			//
+			hr = CVComment->pGrabber->SetBufferSamples( TRUE );
 
-   
-			IBaseFilter *pBaseFilter = NULL;
+			// Only grab one at a time, stop stream after
+			// grabbing one sample
+			//
+			hr = CVComment->pGrabber->SetOneShot( TRUE );
 
-			// Get the display name of the moniker
-			LPOLESTR strMonikerName=0;
-			hr = pMoniker->GetDisplayName(NULL, NULL, &strMonikerName);
-			if (FAILED(hr)){
-				MessageBox::Show("GetDisplayName failed!");
-			}
-
-
-			// Create a bind context needed for working with the moniker
-			IBindCtx *pContext = NULL;
-			hr = CreateBindCtx(0, &pContext);
-			if (FAILED(hr)){
-				 MessageBox::Show("CreateBindCtx failed!");
-			}
-  
-			hr = pGraph->AddSourceFilterForMoniker(pMoniker, pContext, 
-                                             strMonikerName, &pBaseFilter);
-			if (FAILED(hr)){
-				MessageBox::Show("AddSourceFilterForMoniker failed!");
-			}
-
-			// Attach the filter graph to the capture graph
-			hr = pCapture->SetFiltergraph(pGraph);
-			if (FAILED(hr)){
-				MessageBox::Show("SetFiltergraph failed!");
-			}
-
-
-			IBaseFilter *pMux;
-hr = pCapture->SetOutputFileName(
-    &MEDIASUBTYPE_Avi,  // Specifies AVI for the target file.
-    L"e:\\Example.avi", // File name.
-    &pMux,              // Receives a pointer to the mux.
-    NULL); 
-
-			// Render the preview pin on the video capture filter
-			// Use this instead of g_pGraph->RenderFile
-			hr = pCapture->RenderStream (&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
-                                   pBaseFilter, NULL, NULL);
-
-			hr = pCapture->RenderStream(
-    &PIN_CATEGORY_CAPTURE, // Pin category.
-    &MEDIATYPE_Video,      // Media type.
-    pBaseFilter,                  // Capture filter.
-    NULL,                  // Intermediate filter (optional).
-    pMux);                 // Mux or file sink filter.
-
-// Release the mux filter.
-
-			hr = pVW->put_Owner((OAHWND)picHead->Handle.ToPointer());
+			// Set the callback, so we can grab the one sample
+			//
+//			hr = pGrabber->SetCallback( &CB, 1 );
 			
-			RECT rc;
-        
-			// Make the preview video fill our window
-			GetClientRect((HWND)picHead->Handle.ToPointer(), &rc);
-			pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
-//			pVW->SetWindowPosition(0, 0, 40, 40);
-//			pVW->put_Top(40);
-//			pVW->put_Width(40);
-//			pVW->put_Height(40);
-//			pVW->put_Left(40);
-			// Set video window style
-			hr = pVW->put_WindowStyle(WS_CHILD | WS_CLIPCHILDREN);
-   
+			CVComment->pMC->Stop();
+			CVComment->pMC->Run();
+			 
+			long EvCode = 0;
 
-			// Use helper function to position video window in client rect 
-			// of main application window
-   
+			hr = CVComment->pME->WaitForCompletion( INFINITE, &EvCode );
 
-			// Make the video window visible, now that it is properly positioned
-			hr = pVW->put_Visible(OATRUE);
-
-			hr = pMC->Run();
-
-			for(int i = 0; i < 60000; i ++){
-				for(int j = 0; j < 1000; j ++){
-					;
-				}
+			long cbBuffer;
+			hr = CVComment->pGrabber->GetCurrentBuffer(&cbBuffer, NULL);
+			if (FAILED(hr))
+			{
+				MessageBox::Show("GetCurrentBuffer Fail!");
 			}
 
-			hr = pMC->Stop();
-			*/
+			BYTE *pBuffer = (BYTE*)CoTaskMemAlloc(cbBuffer);
+			if (!pBuffer) 
+			{
+				hr = E_OUTOFMEMORY;
+				MessageBox::Show("CoTaskMemAlloc Fail!");
+			}
+
+			hr = CVComment->pGrabber->GetCurrentBuffer(&cbBuffer, (long*)pBuffer);
+			if (FAILED(hr))
+			{
+				MessageBox::Show("GetCurrentBuffer Fail!");
+			}
+			
+			 AM_MEDIA_TYPE mt;
+
+			hr = CVComment->pGrabber->GetConnectedMediaType(&mt);
+			if (FAILED(hr))
+			{
+				MessageBox::Show("GetConnectedMediaType Fail!");
+			}
+
+			VIDEOINFOHEADER *pVih = (VIDEOINFOHEADER*)mt.pbFormat;
+
+			hr = WriteBitmap(
+				clickcount, 
+				&pVih->bmiHeader, 
+				mt.cbFormat - SIZE_PREHEADER, 
+				pBuffer, 
+				cbBuffer);
+		
 
 		}
 
-
-		HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister){
-			IMoniker * pMoniker = NULL;
-			IRunningObjectTable *pROT = NULL;
-
-			if (FAILED(GetRunningObjectTable(0, &pROT))) 
-			{
-				return E_FAIL;
-			}
-		    
-			const size_t STRING_LENGTH = 256;
-
-			WCHAR wsz[STRING_LENGTH];
 		 
-		   StringCchPrintfW(
-				wsz, STRING_LENGTH, 
-				L"FilterGraph %08x pid %08x", 
-				(DWORD_PTR)pUnkGraph, 
-				GetCurrentProcessId()
-				);
-		    
-			HRESULT hr = CreateItemMoniker(L"!", wsz, &pMoniker);
-			if (SUCCEEDED(hr)) 
-			{
-				hr = pROT->Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, pUnkGraph,
-					pMoniker, pdwRegister);
-				pMoniker->Release();
-			}
-			pROT->Release();
-		    
-			return hr;
-		}
-
-
-		void RemoveFromRot(DWORD pdwRegister){
-			IRunningObjectTable *pROT;
-			if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
-				pROT->Revoke(pdwRegister);
-				pROT->Release();
-			}
-		}
-
-
-		HRESULT SetMuxFilter(){
-//			IBaseFileter *pMuxBaseFilter = NULL;
-			return hr;
-		}
-
-
-		void SetVideoWindows(){
-			
-			RECT rc;
-
-			hr = CVComment->pVW->put_Owner((OAHWND)picPriview->Handle.ToPointer());
-			
-			// Make the preview video fill our window
-			GetClientRect((HWND)picPriview->Handle.ToPointer(), &rc);
-			CVComment->pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
-
-			// Set video window style
-			hr = CVComment->pVW->put_WindowStyle(WS_CHILD | WS_CLIPCHILDREN);
-
-			// Make the video window visible, now that it is properly positioned
-			hr = CVComment->pVW->put_Visible(OATRUE);
-		}
-
-
-		HRESULT InitPriviewVideoFilter(){
-			
-			IBaseFilter *pBaseFilter = NULL;
-			IBindCtx *pContext = NULL;
-//			IMoniker **ppMoniker = NULL; 
-//			IFilterGraph2 **ppGraph = NULL; 
-//			ICaptureGraphBuilder2 **ppCapture = NULL;
-
-			cli::pin_ptr<IMoniker *> ppMoniker= &CVComment->pMoniker;
-			cli::pin_ptr<IFilterGraph2 *> ppGraph= &CVComment->pGraph;
-			cli::pin_ptr<ICaptureGraphBuilder2 *> ppCapture= &CVComment->pCapture;
-
-			// Get the display name of the moniker
-			LPOLESTR strMonikerName = 0;
-			hr = CVComment->pMoniker->GetDisplayName(NULL, NULL, &strMonikerName);
-			if (FAILED(hr)){
-				MessageBox::Show("GetDisplayName failed!");
-				return hr;
-			}
-
-			// Create a bind context needed for working with the moniker
-			
-			hr = CreateBindCtx(0, &pContext);
-			if (FAILED(hr)){
-				 MessageBox::Show("CreateBindCtx failed!");
-				 return hr;
-			}
-  
-			
-			hr = CVComment->pGraph->AddSourceFilterForMoniker(
-				*ppMoniker, 
-				pContext, 
-                strMonikerName, 
-				&pBaseFilter);
-			if (FAILED(hr)){
-				MessageBox::Show("AddSourceFilterForMoniker failed!");
-				return hr;
-			}
-
-			// Attach the filter graph to the capture graph
-			hr = CVComment->pCapture->SetFiltergraph(*ppGraph);
-			if (FAILED(hr)){
-				MessageBox::Show("SetFiltergraph failed!");
-				return hr;
-			}
-
-			// Render the preview pin on the video capture filter
-			// Use this instead of g_pGraph->RenderFile
-			hr = CVComment->pCapture->RenderStream (
-				&PIN_CATEGORY_PREVIEW, 
-				&MEDIATYPE_Video,
-                pBaseFilter, 
-				NULL, 
-				NULL);
-			
-			return hr;
-
-			}
-
-
-
-
-		HRESULT InitGraphFilterInstance(){
-			
-			HRESULT hr;
-			cli::pin_ptr<IFilterGraph2 *> ppGraph = &CVComment->pGraph;
-			cli::pin_ptr<ICaptureGraphBuilder2 *> ppCapture = &CVComment->pCapture;
-			cli::pin_ptr<IVideoWindow *> ppVW = &CVComment->pVW;
-			cli::pin_ptr<IMediaControl *> ppMC = &CVComment->pMC;
-			
-			if(!ppGraph || !ppCapture){
-				return E_POINTER;
-			}
-			hr = CoCreateInstance (
-				CLSID_FilterGraph, 
-				NULL, 
-//				CLSCTX_INPROC,
-				CLSCTX_INPROC_SERVER,   //for add grephedit
-                IID_IFilterGraph2, 
-				(void **) ppGraph
-				);
-			if (FAILED(hr)){
-				MessageBox::Show("Initial IFilterGraph2 failed!");
-				return E_NOINTERFACE;
-			}	
-			
-	
-
-			// Create the capture graph builder
-			 hr = CoCreateInstance (
-				 CLSID_CaptureGraphBuilder2, 
-				 NULL, 
-				 CLSCTX_INPROC,
-                 IID_ICaptureGraphBuilder2, 
-				 (void **) ppCapture
-				 );
-			 if (FAILED(hr)){
-				 MessageBox::Show("Initial ICaptureGraphBuilder2 failed!");
-				 return E_NOINTERFACE;
-			 }
-
-			 hr = CVComment->pGraph->QueryInterface(IID_IMediaControl,(LPVOID *) ppMC);
-			 if (FAILED(hr)){
-				MessageBox::Show("Initial IMediaControl failed!");
-				return E_NOINTERFACE;
-			 }
-			 
-			 hr = CVComment->pGraph->QueryInterface(IID_IVideoWindow, (LPVOID *) ppVW);
-			 if (FAILED(hr)){
-				MessageBox::Show("Initial IVideoWindow failed!");
-				return E_NOINTERFACE;
-			 }						
-			 /*
-			 hr = pGraph->QueryInterface(IID_IMediaEvent, (LPVOID *) &pME);
-			 if (FAILED(hr)){
-				MessageBox::Show("Initial IMediaEventEx failed!");
-				return E_NOINTERFACE;
-			 }
-			 */
-			 
-			 return S_OK;
-		}
+	HRESULT WriteBitmap(int count, BITMAPINFOHEADER *pBMI, size_t cbBMI, BYTE *pData, size_t cbData){
+    
+		TCHAR szFilename[MAX_PATH];
+		wsprintf(szFilename, TEXT("e:\\Bitmap%5.5ld.bmp\0"), long( count * 1000 ) );
 		
-
-
-
-
-		HRESULT FindCaptureDevice(){
-			HRESULT hr;
-			
-			ULONG cFetched;
-
-			// Create the system device enumerator
-			ICreateDevEnum *pDevEnum =NULL;
-
-			hr = CoCreateInstance (
-				CLSID_SystemDeviceEnum, 
-				NULL, 
-				CLSCTX_INPROC,
-                IID_ICreateDevEnum, 
-				(void **) &pDevEnum
-				);
-			if (FAILED(hr)){
-				MessageBox::Show("Couldn't create system enumerator!");
-				return E_NOINTERFACE;
-			}
-
-			// Create an enumerator for the video capture devices
-			IEnumMoniker *pClassEnum = NULL;
-
-			hr = pDevEnum->CreateClassEnumerator(
-				CLSID_VideoInputDeviceCategory, 
-				&pClassEnum, 
-				0
-				);
-			if (FAILED(hr)){
-				MessageBox::Show("Couldn't create class enumerator!");
-				return E_NOINTERFACE;
-			}
-
-			// If there are no enumerators for the requested type, then 
-			// CreateClassEnumerator will succeed, but pClassEnum will be NULL.
-			if (pClassEnum == NULL){
-				MessageBox::Show("No video capture device was detected.\r\n\r\n	  \
-						This sample requires a video capture device, such as a USB WebCam,\r\n \
-						to be installed and working properly.  The sample will now close. \
-						No Video Capture Hardware");
-				return E_FAIL;
-			}
-
-			cli::pin_ptr<IMoniker *> ppMoniker = &CVComment->pMoniker;
-
-			// Use the first video capture device on the device list.
-			// Note that if the Next() call succeeds but there are no monikers,
-			// it will return S_FALSE (which is not a failure).  Therefore, we
-			// check that the return code is S_OK instead of using SUCCEEDED() macro.
-			if (S_OK == (pClassEnum->Next (1, ppMoniker, &cFetched))){
-				// Bind Moniker to a filter object
-				IPropertyBag *pPropBag = NULL;
-				hr = CVComment->pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void **)&pPropBag);
-					if (FAILED(hr)){
-						CVComment->pMoniker->Release();
-						return E_NOINTERFACE;  
-					} 
-					
-					VARIANT var;
-					VariantInit(&var);
-
-					// Get description or friendly name.
-					hr = pPropBag->Read(L"Description", &var, 0);
-					if (FAILED(hr)){
-						hr = pPropBag->Read(L"FriendlyName", &var, 0);
-					}
-					if (SUCCEEDED(hr)){
-						strCaptureDevName = String(var.bstrVal).ToString();
-						if(!strCaptureDevName->CompareTo(String(CAPTUREDEVNAME).ToString())){
-							bCameraConnect = true;
-							hr = S_OK;
-						}else{
-							hr = E_FAIL;
-							return hr;
-						}
-
-					}
-
-//								hr = pPropBag->Read(L"DevicePath", &var, 0);
-//								if (SUCCEEDED(hr)){
-//									// The device path is not intended for display.
-//									VariantClear(&var); 
-//								}
-
-					pPropBag->Release();
-
-			}else{
-				MessageBox::Show("Unable to access video capture device!");   
-				return E_FAIL;
-			}
-
-			// Copy the found filter pointer to the output parameter.
-			// Do NOT Release() the reference, since it will still be used
-			// by the calling function.
-
-			return hr;
+		HANDLE hFile = CreateFile(szFilename, GENERIC_WRITE, 0, NULL, 
+			CREATE_ALWAYS, 0, NULL);
+		if (hFile == NULL)
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
 		}
-	
 
-			HRESULT CaptureBitmap(){
-				HRESULT hr;
-				IBaseFilter *pGrabberF = NULL;
-				hr = CoCreateInstance(
-					CLSID_SampleGrabber, 
-					NULL, 
-					CLSCTX_INPROC_SERVER,
-					IID_IBaseFilter, 
-					(void**)&pGrabberF
-					);
-				if (FAILED(hr))
-				{
-					return hr;
-				}
-/*
-				hr = CVComment->pCapture->RenderStream (
-				&PIN_CATEGORY_CAPTURE, 
-				&MEDIATYPE_Video,
-                pGrabberF, 
-				NULL, 
-				NULL);
-  */
+		BITMAPFILEHEADER bmf = { };
 
-				
-				
-				ISampleGrabber *pGrabber;
-				pGrabberF->QueryInterface(IID_ISampleGrabber, (void**)&pGrabber);
+		bmf.bfType = 'MB';
+		bmf.bfSize = cbBMI+ cbData + sizeof(bmf); 
+		bmf.bfOffBits = sizeof(bmf) + cbBMI; 
 
-				AM_MEDIA_TYPE mt;
-				ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
-				mt.majortype = MEDIATYPE_Video;
-				mt.subtype = MEDIASUBTYPE_RGB24;
-				hr = pGrabber->SetMediaType(&mt);
-				
-				// Find the current bit depth.
-				HDC hdc = GetDC(NULL);
-				int iBitDepth = GetDeviceCaps(hdc, BITSPIXEL);
-				ReleaseDC(NULL, hdc);
+		DWORD cbWritten = 0;
+		BOOL result = WriteFile(hFile, &bmf, sizeof(bmf), &cbWritten, NULL);
+		if (result)
+		{
+			result = WriteFile(hFile, pBMI, cbBMI, &cbWritten, NULL);
+		}
+		if (result)
+		{
+			result = WriteFile(hFile, pData, cbData, &cbWritten, NULL);
+		}
 
-				// Set the media type.
-				mt.majortype = MEDIATYPE_Video;
-				switch (iBitDepth)
-				{
-				case 8:
-					mt.subtype = MEDIASUBTYPE_RGB8;
-					break;
-				case 16:
-					mt.subtype = MEDIASUBTYPE_RGB555;
-					break;
-				case 24:
-					mt.subtype = MEDIASUBTYPE_RGB24;
-					break;
-				case 32:
-					mt.subtype = MEDIASUBTYPE_RGB32;
-					break;
-				default:
-					return E_FAIL;
-				}
-				hr = pGrabber->SetMediaType(&mt);
-/*				
-				hr = CVComment->pCapture->RenderStream (
-				&PIN_CATEGORY_CAPTURE, 
-				&MEDIATYPE_Video,
-				CVComment->pGraph, 
-				NULL, 
-				pGrabberF);
-	*/
-			}
-									
-				
+		HRESULT hr = result ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+
+		CloseHandle(hFile);
+
+		return hr;
+	}
+
+
+	void SetVideoWindows(){
+		
+		RECT rc;
+
+		hr = CVComment->pVW->put_Owner((OAHWND)picPriview->Handle.ToPointer());
+		
+		// Make the preview video fill our window
+		GetClientRect((HWND)picPriview->Handle.ToPointer(), &rc);
+		CVComment->pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
+
+		// Set video window style
+		hr = CVComment->pVW->put_WindowStyle(WS_CHILD | WS_CLIPCHILDREN);
+
+		// Make the video window visible, now that it is properly positioned
+		hr = CVComment->pVW->put_Visible(OATRUE);
+	}
+
+
 };
 }
