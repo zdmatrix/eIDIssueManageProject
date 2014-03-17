@@ -14,7 +14,10 @@ using namespace System::Windows::Forms;
 using namespace System::Data;
 using namespace System::Drawing;
 
+using namespace System::IO;
 using namespace System::Drawing::Imaging;
+using namespace System::Runtime::InteropServices;
+
 
 
 
@@ -52,6 +55,8 @@ namespace eIDIssueManageGUI {
 		
 		CaptureVideoComment^ CVComment;
 
+		
+
 		Bitmap^ bitmap;
 		
 		
@@ -79,6 +84,7 @@ namespace eIDIssueManageGUI {
 			clickcount = 0;
 
 			CVComment = gcnew CaptureVideoComment();
+			
 			
 
 			bitmap = gcnew Bitmap("e:\\Bitmap00000.bmp");
@@ -178,7 +184,8 @@ namespace eIDIssueManageGUI {
 			// 
 			this->picPriview->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picPriview->BackColor = System::Drawing::SystemColors::Control;
-			this->picPriview->Location = System::Drawing::Point(380, 225);
+			this->picPriview->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+			this->picPriview->Location = System::Drawing::Point(380, 35);
 			this->picPriview->Name = L"picPriview";
 			this->picPriview->Size = System::Drawing::Size(240, 180);
 			this->picPriview->TabIndex = 0;
@@ -403,7 +410,7 @@ namespace eIDIssueManageGUI {
 			// btnCaptureHeadPic
 			// 
 			this->btnCaptureHeadPic->Enabled = false;
-			this->btnCaptureHeadPic->Location = System::Drawing::Point(441, 411);
+			this->btnCaptureHeadPic->Location = System::Drawing::Point(439, 411);
 			this->btnCaptureHeadPic->Name = L"btnCaptureHeadPic";
 			this->btnCaptureHeadPic->Size = System::Drawing::Size(128, 23);
 			this->btnCaptureHeadPic->TabIndex = 20;
@@ -415,9 +422,11 @@ namespace eIDIssueManageGUI {
 			// 
 			this->picCapture->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picCapture->BackColor = System::Drawing::SystemColors::Control;
-			this->picCapture->Location = System::Drawing::Point(380, 12);
+			this->picCapture->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
+			this->picCapture->Location = System::Drawing::Point(380, 225);
 			this->picCapture->Name = L"picCapture";
 			this->picCapture->Size = System::Drawing::Size(240, 180);
+			this->picCapture->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->picCapture->TabIndex = 21;
 			this->picCapture->TabStop = false;
 			this->picCapture->Tag = L"";
@@ -426,7 +435,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label11->Font = (gcnew System::Drawing::Font(L"ËÎÌו", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label11->Location = System::Drawing::Point(449, 195);
+			this->label11->Location = System::Drawing::Point(449, 9);
 			this->label11->Name = L"label11";
 			this->label11->Size = System::Drawing::Size(84, 23);
 			this->label11->TabIndex = 23;
@@ -516,7 +525,7 @@ namespace eIDIssueManageGUI {
 
 								CVComment->AddToRot(CVComment->pGraphManager, &dwRegister);
 
-//								hr = CVComment->pMC->Run();
+								hr = CVComment->pMC->Run();
 								
 								
 
@@ -562,7 +571,7 @@ namespace eIDIssueManageGUI {
 					 CVComment->pNullRender = NULL;
 					 CVComment->pVW = NULL;
 
-					 hr = CVComment->GreatFilterGraph();
+					 hr = CVComment->CreatFilterGraph();
 					 if (FAILED(hr)){
 						MessageBox::Show("Couldn't GreatFilterGraph!");
 						this->Close();
@@ -594,7 +603,7 @@ namespace eIDIssueManageGUI {
 
 			 }
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
- 
+			 
 			 
 		 }
 
@@ -604,6 +613,8 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 
 			HRESULT hr;
 			clickcount ++;
+
+			CVComment->pMC->Stop();
 	
 //			CSampleGrabberCB CB;
 
@@ -619,7 +630,7 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 			//
 //			hr = pGrabber->SetCallback( &CB, 1 );
 			
-			CVComment->pMC->Stop();
+			
 			CVComment->pMC->Run();
 			 
 			long EvCode = 0;
@@ -656,17 +667,65 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 
 			VIDEOINFOHEADER *pVih = (VIDEOINFOHEADER*)mt.pbFormat;
 
+			DWORD captureSize = (mt.cbFormat - SIZE_PREHEADER) + cbBuffer + sizeof(BITMAPFILEHEADER);
+			BYTE *pCaptrue = (BYTE*)CoTaskMemAlloc(captureSize);
+/*
 			hr = WriteBitmap(
 				clickcount, 
 				&pVih->bmiHeader, 
 				mt.cbFormat - SIZE_PREHEADER, 
 				pBuffer, 
 				cbBuffer);
-		
+*/
+			
+			
+			GetBitmapBufferPoint(
+				&pVih->bmiHeader, 
+				mt.cbFormat - SIZE_PREHEADER, 
+				pBuffer, 
+				cbBuffer,
+				pCaptrue
+				);
+			
+			MemoryStream^ ms = gcnew MemoryStream(captureSize);
+			array<Byte>^ b = gcnew array<Byte>(captureSize);
+			Marshal::Copy( (IntPtr)pCaptrue, b, 0, captureSize );
+			ms->Write(b, 0, captureSize);
 
+			picCapture->Image = Image::FromStream(ms);
+
+
+			
+					
 		}
 
 		 
+		void GetBitmapBufferPoint(BITMAPINFOHEADER *pBMI, size_t cbBMI, BYTE *pData, size_t cbData, BYTE* pCaptrue){
+		
+		BITMAPFILEHEADER bmf = { };
+			
+
+		bmf.bfType = 'MB';
+		bmf.bfSize = cbBMI+ cbData + sizeof(bmf); 
+		bmf.bfOffBits = sizeof(bmf) + cbBMI; 
+
+//		BYTE *pCaptrue = (BYTE*)CoTaskMemAlloc(bmf.bfSize);
+		
+		/*
+		BYTE *tmp = (BYTE*)CoTaskMemAlloc(bmf.bfSize);
+
+		memcpy(tmp, &bmf, sizeof(bmf));
+		
+		memcpy((tmp + sizeof(bmf)), pBMI, cbBMI);
+		memcpy((tmp + sizeof(bmf) + cbBMI), pData, cbData);
+		*/
+		memcpy(pCaptrue, &bmf, sizeof(bmf));
+		
+		memcpy((pCaptrue + sizeof(bmf)), pBMI, cbBMI);
+		memcpy((pCaptrue + sizeof(bmf) + cbBMI), pData, cbData);
+		
+		}
+			
 	HRESULT WriteBitmap(int count, BITMAPINFOHEADER *pBMI, size_t cbBMI, BYTE *pData, size_t cbData){
     
 		TCHAR szFilename[MAX_PATH];
@@ -720,6 +779,7 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 		// Make the video window visible, now that it is properly positioned
 		hr = CVComment->pVW->put_Visible(OATRUE);
 	}
+
 
 
 };

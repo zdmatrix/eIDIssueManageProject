@@ -200,6 +200,7 @@ namespace eIDIssueManageGUI {
 				 }else{
 					 MessageBox::Show("用户名/密码错误，请重新输入");
 				 }
+				 
 			 }
 	private: System::Boolean bVerifyBackground(String^ logName, String^ logPin){
 				 /*

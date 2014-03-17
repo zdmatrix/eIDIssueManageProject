@@ -4,7 +4,7 @@
 using namespace System;
 using namespace System::Windows::Forms;
 
-//#define HED
+#define HED
 
 template <class T> void SafeRelease(T **ppT)
 {
@@ -141,7 +141,7 @@ public ref class CaptureVideoComment{
 		IPin *pGrabberOutPin;
 
 			
-	HRESULT GreatFilterGraph(){
+	HRESULT CreatFilterGraph(){
 		
 		HRESULT hr;
 		cli::pin_ptr<IGraphBuilder *> ppGraphManager = &pGraphManager;
@@ -353,15 +353,8 @@ public ref class CaptureVideoComment{
 		pCapture->SetFiltergraph(pGraphManager);
 
 		pCapture->RenderStream(
+//			&PIN_CATEGORY_CAPTURE,
 			&PIN_CATEGORY_PREVIEW,
-			 &MEDIATYPE_Video,
-			 pCaptureBaseFilter,
-			 NULL,
-			 NULL
-			);
-
-		pCapture->RenderStream(
-			&PIN_CATEGORY_CAPTURE,
 			 &MEDIATYPE_Video,
 			 pCaptureBaseFilter,
 			 NULL,
@@ -369,7 +362,16 @@ public ref class CaptureVideoComment{
 			);
 
 		hr = ConnectFilters(pGraphManager, pGrabberBaseFilter, pNullRender);
-
+		/* 
+		pCapture->RenderStream(
+			&PIN_CATEGORY_PREVIEW,
+			 &MEDIATYPE_Video,
+			 pCaptureBaseFilter,
+			 NULL,
+			 NULL
+			);
+	   
+		  */
 		cli::pin_ptr<IVideoWindow *> ppVW = &pVW;
 		cli::pin_ptr<IMediaControl *> ppMC = &pMC;
 		cli::pin_ptr<IMediaEventEx *> ppME = &pME;
@@ -585,37 +587,7 @@ public ref class CaptureVideoComment{
 		return pComPin;
 	}
 
-	HRESULT WriteBitmap(LPCSTR pszFileName, BITMAPINFOHEADER *pBMI, size_t cbBMI,BYTE *pData, size_t cbData){
-		HANDLE hFile = CreateFile(pszFileName, GENERIC_WRITE, 0, NULL, 
-			CREATE_ALWAYS, 0, NULL);
-		if (hFile == NULL)
-		{
-			return HRESULT_FROM_WIN32(GetLastError());
-		}
-
-		BITMAPFILEHEADER bmf = { };
-
-		bmf.bfType = 'MB';
-		bmf.bfSize = cbBMI+ cbData + sizeof(bmf); 
-		bmf.bfOffBits = sizeof(bmf) + cbBMI; 
-
-		DWORD cbWritten = 0;
-		BOOL result = WriteFile(hFile, &bmf, sizeof(bmf), &cbWritten, NULL);
-		if (result)
-		{
-			result = WriteFile(hFile, pBMI, cbBMI, &cbWritten, NULL);
-		}
-		if (result)
-		{
-			result = WriteFile(hFile, pData, cbData, &cbWritten, NULL);
-		}
-
-		HRESULT hr = result ? S_OK : HRESULT_FROM_WIN32(GetLastError());
-
-		CloseHandle(hFile);
-
-		return hr;
-	}
+	
 
 	HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister){
 		IMoniker * pMoniker = NULL;
