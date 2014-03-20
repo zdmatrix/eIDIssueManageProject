@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DSComment.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\eIDIssueManageGUI.cpp"
 				>
 			</File>
@@ -245,7 +249,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\DirectXComment.h"
+				RelativePath=".\DSComment.h"
 				>
 			</File>
 			<File

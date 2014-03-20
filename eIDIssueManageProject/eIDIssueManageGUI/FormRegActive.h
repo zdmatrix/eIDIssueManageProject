@@ -2,7 +2,8 @@
 
 //#include <uuids.h>
 //#include <strsafe.h>
-#include "DirectXComment.h"
+//#include "DirectXComment.h"
+#include "DSComment.h"
 
 //#define HED
 
@@ -22,6 +23,7 @@ using namespace System::Runtime::InteropServices;
 
 
 namespace eIDIssueManageGUI {
+
 
 	/// <summary>
 	/// FormRegActive 摘要
@@ -43,9 +45,11 @@ namespace eIDIssueManageGUI {
 		bool bIDHeadPic;
 		bool bIDReaderConnect;
 		bool bCameraConnect;
+
+		bool bCaptureStill;
 		
 		bool bReturnUpForm;
-		int clickcount;
+
 		HRESULT hr;
 
 		DWORD dwRegister;
@@ -53,17 +57,14 @@ namespace eIDIssueManageGUI {
 		String^ strInfoMessage;
 		String^ strCaptureDevName;
 		
-		CaptureVideoComment^ CVComment;
-
-		
-
-		Bitmap^ bitmap;
+		DSComment^ DS;
 		
 		
 
 	private: System::Windows::Forms::Button^  btnCaptureIDInfo;
 	private: System::Windows::Forms::Button^  btnCaptureHeadPic;
 	private: System::Windows::Forms::PictureBox^  picCapture;
+	private: System::Windows::Forms::Label^  label10;
 
 	private: System::Windows::Forms::Label^  label11;
 
@@ -80,14 +81,10 @@ namespace eIDIssueManageGUI {
 			bIDReaderConnect = false;
 			bCameraConnect = false;
 			bReturnUpForm = false;
+			bCaptureStill = false;
 
-			clickcount = 0;
-
-			CVComment = gcnew CaptureVideoComment();
+			DS = gcnew DSComment();
 			
-			
-
-			bitmap = gcnew Bitmap("e:\\Bitmap00000.bmp");
 			
 			InitializeComponent();
 			//
@@ -176,6 +173,7 @@ namespace eIDIssueManageGUI {
 			this->btnCaptureHeadPic = (gcnew System::Windows::Forms::Button());
 			this->picCapture = (gcnew System::Windows::Forms::PictureBox());
 			this->label11 = (gcnew System::Windows::Forms::Label());
+			this->label10 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picPriview))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picCapture))->BeginInit();
 			this->SuspendLayout();
@@ -185,7 +183,7 @@ namespace eIDIssueManageGUI {
 			this->picPriview->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picPriview->BackColor = System::Drawing::SystemColors::Control;
 			this->picPriview->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
-			this->picPriview->Location = System::Drawing::Point(380, 35);
+			this->picPriview->Location = System::Drawing::Point(380, 50);
 			this->picPriview->Name = L"picPriview";
 			this->picPriview->Size = System::Drawing::Size(240, 180);
 			this->picPriview->TabIndex = 0;
@@ -196,7 +194,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label1->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label1->Location = System::Drawing::Point(12, 14);
+			this->label1->Location = System::Drawing::Point(16, 71);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(42, 23);
 			this->label1->TabIndex = 1;
@@ -208,7 +206,7 @@ namespace eIDIssueManageGUI {
 			this->textIDName->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDName->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDName->Location = System::Drawing::Point(63, 12);
+			this->textIDName->Location = System::Drawing::Point(67, 69);
 			this->textIDName->Name = L"textIDName";
 			this->textIDName->ReadOnly = true;
 			this->textIDName->Size = System::Drawing::Size(277, 29);
@@ -219,7 +217,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label2->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label2->Location = System::Drawing::Point(12, 62);
+			this->label2->Location = System::Drawing::Point(16, 119);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(42, 23);
 			this->label2->TabIndex = 3;
@@ -230,7 +228,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label3->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label3->Location = System::Drawing::Point(159, 62);
+			this->label3->Location = System::Drawing::Point(163, 119);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(43, 23);
 			this->label3->TabIndex = 4;
@@ -242,7 +240,7 @@ namespace eIDIssueManageGUI {
 			this->textIDSex->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDSex->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDSex->Location = System::Drawing::Point(63, 60);
+			this->textIDSex->Location = System::Drawing::Point(67, 117);
 			this->textIDSex->Name = L"textIDSex";
 			this->textIDSex->ReadOnly = true;
 			this->textIDSex->Size = System::Drawing::Size(90, 29);
@@ -254,7 +252,7 @@ namespace eIDIssueManageGUI {
 			this->textIDNation->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDNation->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDNation->Location = System::Drawing::Point(208, 60);
+			this->textIDNation->Location = System::Drawing::Point(212, 117);
 			this->textIDNation->Name = L"textIDNation";
 			this->textIDNation->ReadOnly = true;
 			this->textIDNation->Size = System::Drawing::Size(132, 29);
@@ -266,7 +264,7 @@ namespace eIDIssueManageGUI {
 			this->textIDYear->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDYear->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDYear->Location = System::Drawing::Point(63, 114);
+			this->textIDYear->Location = System::Drawing::Point(67, 171);
 			this->textIDYear->Name = L"textIDYear";
 			this->textIDYear->ReadOnly = true;
 			this->textIDYear->Size = System::Drawing::Size(80, 29);
@@ -278,7 +276,7 @@ namespace eIDIssueManageGUI {
 			this->textIDMonth->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDMonth->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDMonth->Location = System::Drawing::Point(181, 114);
+			this->textIDMonth->Location = System::Drawing::Point(185, 171);
 			this->textIDMonth->Name = L"textIDMonth";
 			this->textIDMonth->ReadOnly = true;
 			this->textIDMonth->Size = System::Drawing::Size(47, 29);
@@ -290,7 +288,7 @@ namespace eIDIssueManageGUI {
 			this->textIDDay->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDDay->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDDay->Location = System::Drawing::Point(265, 114);
+			this->textIDDay->Location = System::Drawing::Point(269, 171);
 			this->textIDDay->Name = L"textIDDay";
 			this->textIDDay->ReadOnly = true;
 			this->textIDDay->Size = System::Drawing::Size(47, 29);
@@ -301,7 +299,7 @@ namespace eIDIssueManageGUI {
 			this->textIDLocation->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDLocation->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDLocation->Location = System::Drawing::Point(63, 166);
+			this->textIDLocation->Location = System::Drawing::Point(67, 223);
 			this->textIDLocation->Multiline = true;
 			this->textIDLocation->Name = L"textIDLocation";
 			this->textIDLocation->ReadOnly = true;
@@ -313,7 +311,7 @@ namespace eIDIssueManageGUI {
 			this->textIDNum->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDNum->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDNum->Location = System::Drawing::Point(123, 250);
+			this->textIDNum->Location = System::Drawing::Point(127, 307);
 			this->textIDNum->Name = L"textIDNum";
 			this->textIDNum->ReadOnly = true;
 			this->textIDNum->Size = System::Drawing::Size(217, 29);
@@ -324,7 +322,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label4->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label4->Location = System::Drawing::Point(12, 116);
+			this->label4->Location = System::Drawing::Point(16, 173);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(42, 23);
 			this->label4->TabIndex = 12;
@@ -335,7 +333,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label5->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label5->Location = System::Drawing::Point(12, 168);
+			this->label5->Location = System::Drawing::Point(16, 225);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(42, 23);
 			this->label5->TabIndex = 13;
@@ -346,7 +344,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label6->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label6->Location = System::Drawing::Point(149, 116);
+			this->label6->Location = System::Drawing::Point(153, 173);
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(26, 23);
 			this->label6->TabIndex = 14;
@@ -357,7 +355,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label7->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label7->Location = System::Drawing::Point(234, 116);
+			this->label7->Location = System::Drawing::Point(238, 173);
 			this->label7->Name = L"label7";
 			this->label7->Size = System::Drawing::Size(25, 23);
 			this->label7->TabIndex = 15;
@@ -368,7 +366,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label8->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label8->Location = System::Drawing::Point(318, 116);
+			this->label8->Location = System::Drawing::Point(322, 173);
 			this->label8->Name = L"label8";
 			this->label8->Size = System::Drawing::Size(22, 23);
 			this->label8->TabIndex = 16;
@@ -379,7 +377,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label9->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label9->Location = System::Drawing::Point(12, 252);
+			this->label9->Location = System::Drawing::Point(16, 309);
 			this->label9->Name = L"label9";
 			this->label9->Size = System::Drawing::Size(105, 23);
 			this->label9->TabIndex = 17;
@@ -388,7 +386,8 @@ namespace eIDIssueManageGUI {
 			// 
 			// btnRegActive
 			// 
-			this->btnRegActive->Location = System::Drawing::Point(226, 411);
+			this->btnRegActive->Enabled = false;
+			this->btnRegActive->Location = System::Drawing::Point(290, 422);
 			this->btnRegActive->Name = L"btnRegActive";
 			this->btnRegActive->Size = System::Drawing::Size(75, 23);
 			this->btnRegActive->TabIndex = 18;
@@ -399,7 +398,7 @@ namespace eIDIssueManageGUI {
 			// btnCaptureIDInfo
 			// 
 			this->btnCaptureIDInfo->Enabled = false;
-			this->btnCaptureIDInfo->Location = System::Drawing::Point(15, 341);
+			this->btnCaptureIDInfo->Location = System::Drawing::Point(67, 422);
 			this->btnCaptureIDInfo->Name = L"btnCaptureIDInfo";
 			this->btnCaptureIDInfo->Size = System::Drawing::Size(128, 23);
 			this->btnCaptureIDInfo->TabIndex = 19;
@@ -410,7 +409,7 @@ namespace eIDIssueManageGUI {
 			// btnCaptureHeadPic
 			// 
 			this->btnCaptureHeadPic->Enabled = false;
-			this->btnCaptureHeadPic->Location = System::Drawing::Point(439, 411);
+			this->btnCaptureHeadPic->Location = System::Drawing::Point(440, 422);
 			this->btnCaptureHeadPic->Name = L"btnCaptureHeadPic";
 			this->btnCaptureHeadPic->Size = System::Drawing::Size(128, 23);
 			this->btnCaptureHeadPic->TabIndex = 20;
@@ -423,7 +422,8 @@ namespace eIDIssueManageGUI {
 			this->picCapture->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picCapture->BackColor = System::Drawing::SystemColors::Control;
 			this->picCapture->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
-			this->picCapture->Location = System::Drawing::Point(380, 225);
+			this->picCapture->InitialImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"picCapture.InitialImage")));
+			this->picCapture->Location = System::Drawing::Point(380, 236);
 			this->picCapture->Name = L"picCapture";
 			this->picCapture->Size = System::Drawing::Size(240, 180);
 			this->picCapture->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
@@ -435,19 +435,31 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label11->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label11->Location = System::Drawing::Point(449, 9);
+			this->label11->Location = System::Drawing::Point(448, 9);
 			this->label11->Name = L"label11";
 			this->label11->Size = System::Drawing::Size(84, 23);
 			this->label11->TabIndex = 23;
 			this->label11->Text = L"视频预览";
 			this->label11->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
+			// label10
+			// 
+			this->label10->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(134)));
+			this->label10->Location = System::Drawing::Point(148, 9);
+			this->label10->Name = L"label10";
+			this->label10->Size = System::Drawing::Size(84, 23);
+			this->label10->TabIndex = 24;
+			this->label10->Text = L"身份信息";
+			this->label10->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			// 
 			// FormRegActive
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(96, 96);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Dpi;
 			this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
-			this->ClientSize = System::Drawing::Size(632, 446);
+			this->ClientSize = System::Drawing::Size(632, 457);
+			this->Controls->Add(this->label10);
 			this->Controls->Add(this->label11);
 			this->Controls->Add(this->picCapture);
 			this->Controls->Add(this->btnCaptureHeadPic);
@@ -489,46 +501,38 @@ namespace eIDIssueManageGUI {
 		
 		private: System::Void FormRegActive_Shown(System::Object^  sender, System::EventArgs^  e) {
 				
-					DWORD dwRegister = 0;
 					 ::DialogResult result;					 
-					 cli::pin_ptr<DWORD> pdwRegister = &CVComment->dwRegister;
+	
 					 
 					 
-					 strInfoMessage = "单击'确定'开始设备查找\r\n单击'取消'返回上一级菜单";
+					 strInfoMessage = "单击“确定”开始连接视频采集设备\r\n单击'取消'返回上一级菜单";
 					 while(1){
 						
-						if((result = MessageBox::Show(this, strInfoMessage, "查找设备", MessageBoxButtons::OKCancel, MessageBoxIcon::Information)) == ::DialogResult::Cancel){
+						 if((result = MessageBox::Show(this, strInfoMessage, "查找设备", MessageBoxButtons::OKCancel, MessageBoxIcon::Information)) == ::DialogResult::Cancel){
 							bReturnUpForm = true;
 							break;
 						}else{
 							bReturnUpForm = false;
-
 							
-//							hr = AddToRot(CVComment->pGraph, pdwRegister);
-							
-							hr = CVComment->CreatCaptureFilter();
+							hr = DS->CreatCaptureFilter();
 							
 							if(FAILED(hr)){
-								strInfoMessage = "没有找到设备,请确认设备连接正常\r\n单击'确定'重新查找\r\n单击'取消'返回上一级菜单";	
+								strInfoMessage = "没有找到设备,请确认设备连接正常\r\n单击'重试'重新查找\r\n\n单击'取消'返回上一级菜单";	
 							}else{
 								
 								btnCaptureIDInfo->Enabled = true;
 								btnCaptureHeadPic->Enabled = true;
 								
-								hr = CVComment->BuiltFilterGraph();		//init grabber filter for capture one video frame
+								hr = DS->BuiltFilterGraph();		//init grabber filter for capture one video frame
 								if(FAILED(hr)){
 									MessageBox::Show("BuiltFilterGraph failed.");
 									continue;
 								}
 
-								SetVideoWindows();
+								DS->SetVideoWindows((HWND)picPriview->Handle.ToPointer());
 
-								CVComment->AddToRot(CVComment->pGraphManager, &dwRegister);
-
-								hr = CVComment->pMC->Run();
+								hr = DS->pMC->Run();
 								
-								
-
 								break;					
 								
 							}
@@ -536,6 +540,7 @@ namespace eIDIssueManageGUI {
 						}
 					 }
 					 if(bReturnUpForm){
+						DS->DestroyFilter();
 						this->Owner->Activate();
 						this->Owner->Show();
 						this->Close();
@@ -544,50 +549,26 @@ namespace eIDIssueManageGUI {
 				 }
 
 		private: System::Void FormRegActive_Closed(System::Object^  sender, System::EventArgs^  e) {
-					 CVComment->pCapture->Release();
-					 CVComment->pCaptureBaseFilter->Release();
-					 CVComment->pMC->Release();
-					 CVComment->pGrabber->Release();
-					 CVComment->pGrabberBaseFilter->Release();
-					 CVComment->pGraphManager->Release();
-					 CVComment->pME->Release();
-					 CVComment->pNullRender->Release();
-					 CVComment->pVW->Release();
+					 DS->DestroyFilter();
 			this->Owner->Activate();
 			this->Owner->Show();
 		}
 
 		private: System::Void FormRegActive_Load(System::Object^  sender, System::EventArgs^  e) {
 
-					 CVComment->bCaptureDevConnect = false;
-					 CVComment->dwRegister = 0;
-					 CVComment->pCapture = NULL;
-					 CVComment->pCaptureBaseFilter = NULL;
-					 CVComment->pMC = NULL;
-					 CVComment->pGrabber = NULL;
-					 CVComment->pGrabberBaseFilter = NULL;
-					 CVComment->pGraphManager = NULL;
-					 CVComment->pME = NULL;
-					 CVComment->pNullRender = NULL;
-					 CVComment->pVW = NULL;
-
-					 hr = CVComment->CreatFilterGraph();
+					 picCapture->Image = Image::FromFile(String("noboy.PNG").ToString(), false);
+					 
+					 hr = DS->CreatFilterGraph();
 					 if (FAILED(hr)){
 						MessageBox::Show("Couldn't GreatFilterGraph!");
 						this->Close();
 					 }
 
-					 hr = CVComment->CreatGrabberFilter();
+					 hr = DS->CreatGrabberFilter();
 					 if (FAILED(hr)){
 						MessageBox::Show("Couldn't CreatGrabberFilter!");
 						this->Close();
 					 }
-
-					 hr = CVComment->CreatNullReanderFilter();
-					 if (FAILED(hr)){
-						MessageBox::Show("Couldn't CreatNullReanderFilter!");
-						this->Close();
-					 }	
 			
 			}
 
@@ -611,176 +592,17 @@ private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::Ev
 
 private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::EventArgs^  e) {
 
-			HRESULT hr;
-			clickcount ++;
+			 long size = 0;
 
-			CVComment->pMC->Stop();
-	
-//			CSampleGrabberCB CB;
+			 BYTE* pImage = DS->SnapStillImage(&size);
+			 MemoryStream^ ms = gcnew MemoryStream(size);
+			array<Byte>^ b = gcnew array<Byte>(size);
+			Marshal::Copy( (IntPtr)pImage, b, 0, size );
+			ms->Write(b, 0, size);
 
-			//
-			hr = CVComment->pGrabber->SetBufferSamples( TRUE );
-
-			// Only grab one at a time, stop stream after
-			// grabbing one sample
-			//
-			hr = CVComment->pGrabber->SetOneShot( TRUE );
-
-			// Set the callback, so we can grab the one sample
-			//
-//			hr = pGrabber->SetCallback( &CB, 1 );
-			
-			
-			CVComment->pMC->Run();
-			 
-			long EvCode = 0;
-
-			hr = CVComment->pME->WaitForCompletion( INFINITE, &EvCode );
-
-			long cbBuffer;
-			hr = CVComment->pGrabber->GetCurrentBuffer(&cbBuffer, NULL);
-			if (FAILED(hr))
-			{
-				MessageBox::Show("GetCurrentBuffer Fail!");
-			}
-
-			BYTE *pBuffer = (BYTE*)CoTaskMemAlloc(cbBuffer);
-			if (!pBuffer) 
-			{
-				hr = E_OUTOFMEMORY;
-				MessageBox::Show("CoTaskMemAlloc Fail!");
-			}
-
-			hr = CVComment->pGrabber->GetCurrentBuffer(&cbBuffer, (long*)pBuffer);
-			if (FAILED(hr))
-			{
-				MessageBox::Show("GetCurrentBuffer Fail!");
-			}
-			
-			 AM_MEDIA_TYPE mt;
-
-			hr = CVComment->pGrabber->GetConnectedMediaType(&mt);
-			if (FAILED(hr))
-			{
-				MessageBox::Show("GetConnectedMediaType Fail!");
-			}
-
-			VIDEOINFOHEADER *pVih = (VIDEOINFOHEADER*)mt.pbFormat;
-
-			DWORD captureSize = (mt.cbFormat - SIZE_PREHEADER) + cbBuffer + sizeof(BITMAPFILEHEADER);
-			BYTE *pCaptrue = (BYTE*)CoTaskMemAlloc(captureSize);
-/*
-			hr = WriteBitmap(
-				clickcount, 
-				&pVih->bmiHeader, 
-				mt.cbFormat - SIZE_PREHEADER, 
-				pBuffer, 
-				cbBuffer);
-*/
-			
-			
-			GetBitmapBufferPoint(
-				&pVih->bmiHeader, 
-				mt.cbFormat - SIZE_PREHEADER, 
-				pBuffer, 
-				cbBuffer,
-				pCaptrue
-				);
-			
-			MemoryStream^ ms = gcnew MemoryStream(captureSize);
-			array<Byte>^ b = gcnew array<Byte>(captureSize);
-			Marshal::Copy( (IntPtr)pCaptrue, b, 0, captureSize );
-			ms->Write(b, 0, captureSize);
-
-			picCapture->Image = Image::FromStream(ms);
-
-
-			
-					
+			picCapture->Image = Image::FromStream(ms);	
+							
 		}
-
-		 
-		void GetBitmapBufferPoint(BITMAPINFOHEADER *pBMI, size_t cbBMI, BYTE *pData, size_t cbData, BYTE* pCaptrue){
-		
-		BITMAPFILEHEADER bmf = { };
-			
-
-		bmf.bfType = 'MB';
-		bmf.bfSize = cbBMI+ cbData + sizeof(bmf); 
-		bmf.bfOffBits = sizeof(bmf) + cbBMI; 
-
-//		BYTE *pCaptrue = (BYTE*)CoTaskMemAlloc(bmf.bfSize);
-		
-		/*
-		BYTE *tmp = (BYTE*)CoTaskMemAlloc(bmf.bfSize);
-
-		memcpy(tmp, &bmf, sizeof(bmf));
-		
-		memcpy((tmp + sizeof(bmf)), pBMI, cbBMI);
-		memcpy((tmp + sizeof(bmf) + cbBMI), pData, cbData);
-		*/
-		memcpy(pCaptrue, &bmf, sizeof(bmf));
-		
-		memcpy((pCaptrue + sizeof(bmf)), pBMI, cbBMI);
-		memcpy((pCaptrue + sizeof(bmf) + cbBMI), pData, cbData);
-		
-		}
-			
-	HRESULT WriteBitmap(int count, BITMAPINFOHEADER *pBMI, size_t cbBMI, BYTE *pData, size_t cbData){
-    
-		TCHAR szFilename[MAX_PATH];
-		wsprintf(szFilename, TEXT("e:\\Bitmap%5.5ld.bmp\0"), long( count * 1000 ) );
-		
-		HANDLE hFile = CreateFile(szFilename, GENERIC_WRITE, 0, NULL, 
-			CREATE_ALWAYS, 0, NULL);
-		if (hFile == NULL)
-		{
-			return HRESULT_FROM_WIN32(GetLastError());
-		}
-
-		BITMAPFILEHEADER bmf = { };
-
-		bmf.bfType = 'MB';
-		bmf.bfSize = cbBMI+ cbData + sizeof(bmf); 
-		bmf.bfOffBits = sizeof(bmf) + cbBMI; 
-
-		DWORD cbWritten = 0;
-		BOOL result = WriteFile(hFile, &bmf, sizeof(bmf), &cbWritten, NULL);
-		if (result)
-		{
-			result = WriteFile(hFile, pBMI, cbBMI, &cbWritten, NULL);
-		}
-		if (result)
-		{
-			result = WriteFile(hFile, pData, cbData, &cbWritten, NULL);
-		}
-
-		HRESULT hr = result ? S_OK : HRESULT_FROM_WIN32(GetLastError());
-
-		CloseHandle(hFile);
-
-		return hr;
-	}
-
-
-	void SetVideoWindows(){
-		
-		RECT rc;
-
-		hr = CVComment->pVW->put_Owner((OAHWND)picPriview->Handle.ToPointer());
-		
-		// Make the preview video fill our window
-		GetClientRect((HWND)picPriview->Handle.ToPointer(), &rc);
-		CVComment->pVW->SetWindowPosition(0, 0, rc.right, rc.bottom);
-
-		// Set video window style
-		hr = CVComment->pVW->put_WindowStyle(WS_CHILD | WS_CLIPCHILDREN);
-
-		// Make the video window visible, now that it is properly positioned
-		hr = CVComment->pVW->put_Visible(OATRUE);
-	}
-
-
 
 };
 }
