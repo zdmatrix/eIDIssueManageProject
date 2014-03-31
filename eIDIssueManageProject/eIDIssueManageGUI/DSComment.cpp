@@ -16,6 +16,22 @@ using namespace System::Windows::Forms;
 		IBaseFilter *pCaptureBaseFilter;
 		IBaseFilter *pGrabberBaseFilter;
 
+		IBaseFilter *pNullRenderFilter;
+
+	HRESULT DSComment::CreatNullRender(){
+		HRESULT hr;
+		cli::pin_ptr<IBaseFilter *> ppNullRenderFilter = &pNullRenderFilter;
+
+		hr = CoCreateInstance(
+			CLSID_NullRenderer,
+			NULL,
+			CLSCTX_INPROC_SERVER,
+			IID_IBaseFilter,
+			(void **)ppNullRenderFilter
+			);
+		return hr;
+	}
+
 			
 	HRESULT DSComment::CreatFilterGraph(){
 		
@@ -209,16 +225,18 @@ using namespace System::Windows::Forms;
 		pGraphManager->AddFilter(pCaptureBaseFilter, L"HED eID Capture Device");
 		pGraphManager->AddFilter(pGrabberBaseFilter, L"HED eID Sample Grabber Filter");
 
+//		pGraphManager->AddFilter(pNullRenderFilter, L"HED eID Null Render");
+
 		pCapture->SetFiltergraph(pGraphManager);
 
 		pCapture->RenderStream(
-//			&PIN_CATEGORY_CAPTURE,
-			&PIN_CATEGORY_PREVIEW,
+			&PIN_CATEGORY_CAPTURE,
+//			&PIN_CATEGORY_PREVIEW,
 			 &MEDIATYPE_Video,
 			 pCaptureBaseFilter,
 			 pGrabberBaseFilter,
 			 NULL
-			 
+//			 pNullRenderFilter
 			);
 
 		
@@ -292,15 +310,45 @@ using namespace System::Windows::Forms;
 		hr = pGrabber->SetOneShot( FALSE );
 
 		pMC->Run();
-		Sleep(500);
+/*
+		long EvCode=0;
+        hr = pME->WaitForCompletion( INFINITE, &EvCode );
 
+
+		int *eve = new int[100];
+		int i = 0;
+		
+
+
+		long evCode, param1, param2;
+
+while (hr = pME->GetEvent(&evCode, &param1, &param2, 0), SUCCEEDED(hr))
+{
+    
+	eve[i] = evCode;
+	i ++;
+	switch(evCode) 
+    { 
+        // Call application-defined functions for each 
+        // type of event that you want to handle.
+	case EC_BUFFERING_DATA:
+		MessageBox::Show("Get one");
+		break;
+    } 
+	
+    hr = pME->FreeEventParams(evCode, param1, param2);
+}
+
+*/
+		Sleep(500);
+		
+
+		
 		long cbBuffer;
 		hr = pGrabber->GetCurrentBuffer(&cbBuffer, NULL);
 		if (FAILED(hr))
 		{
-			MessageBox::Show("GetCurrentBuffer Fail!");
-			
-			
+			MessageBox::Show("GetCurrentBuffer Fail!");	
 		}
 
 		BYTE *pBuffer = (BYTE*)CoTaskMemAlloc(cbBuffer);
@@ -346,7 +394,7 @@ using namespace System::Windows::Forms;
 		
 		memcpy((pCaptrue + sizeof(bmf)), &pVih->bmiHeader, cbBMI);
 		memcpy((pCaptrue + sizeof(bmf) + cbBMI), pBuffer, cbBuffer);
-		
+	
 		return pCaptrue;		
 
 	}

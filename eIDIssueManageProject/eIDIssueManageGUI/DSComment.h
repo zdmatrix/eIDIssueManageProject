@@ -10,10 +10,12 @@ public:
 		IMediaEventEx *pME;
 		IBaseFilter *pCaptureBaseFilter;
 		IBaseFilter *pGrabberBaseFilter;
+		IBaseFilter *pNullRenderFilter;
 
 			
 	HRESULT CreatFilterGraph();
 
+	HRESULT CreatNullRender();
 	
 	HRESULT CreatGrabberFilter();
 	

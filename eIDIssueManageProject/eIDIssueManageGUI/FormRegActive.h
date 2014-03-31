@@ -183,7 +183,7 @@ namespace eIDIssueManageGUI {
 			this->picPriview->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picPriview->BackColor = System::Drawing::SystemColors::Control;
 			this->picPriview->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
-			this->picPriview->Location = System::Drawing::Point(380, 50);
+			this->picPriview->Location = System::Drawing::Point(380, 35);
 			this->picPriview->Name = L"picPriview";
 			this->picPriview->Size = System::Drawing::Size(240, 180);
 			this->picPriview->TabIndex = 0;
@@ -423,7 +423,7 @@ namespace eIDIssueManageGUI {
 			this->picCapture->BackColor = System::Drawing::SystemColors::Control;
 			this->picCapture->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
 			this->picCapture->InitialImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"picCapture.InitialImage")));
-			this->picCapture->Location = System::Drawing::Point(380, 236);
+			this->picCapture->Location = System::Drawing::Point(380, 223);
 			this->picCapture->Name = L"picCapture";
 			this->picCapture->Size = System::Drawing::Size(240, 180);
 			this->picCapture->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
@@ -503,7 +503,7 @@ namespace eIDIssueManageGUI {
 				
 					 ::DialogResult result;					 
 	
-					 
+					 DWORD dwRegister = 0;
 					 
 					 strInfoMessage = "单击“确定”开始连接视频采集设备\r\n单击'取消'返回上一级菜单";
 					 while(1){
@@ -522,12 +522,15 @@ namespace eIDIssueManageGUI {
 								
 								btnCaptureIDInfo->Enabled = true;
 								btnCaptureHeadPic->Enabled = true;
+								btnRegActive->Enabled = true;
 								
 								hr = DS->BuiltFilterGraph();		//init grabber filter for capture one video frame
 								if(FAILED(hr)){
 									MessageBox::Show("BuiltFilterGraph failed.");
 									continue;
 								}
+
+								AddToRot(DS->pGraphManager, &dwRegister);
 
 								DS->SetVideoWindows((HWND)picPriview->Handle.ToPointer());
 
@@ -569,6 +572,12 @@ namespace eIDIssueManageGUI {
 						MessageBox::Show("Couldn't CreatGrabberFilter!");
 						this->Close();
 					 }
+
+					 hr = DS->CreatNullRender();
+					 if (FAILED(hr)){
+						 MessageBox::Show("Couldn't CreatNullRender!");
+						 this->Close();
+					 }
 			
 			}
 
@@ -581,10 +590,11 @@ namespace eIDIssueManageGUI {
 
 			 }
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
+				  DS->pGrabber->SetOneShot( TRUE );
 
 			 }
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
-			 
+				  DS->pGrabber->SetOneShot( FALSE );
 			 
 		 }
 
@@ -603,6 +613,50 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 			picCapture->Image = Image::FromStream(ms);	
 							
 		}
+
+
+		 HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister){
+			 IMoniker * pMoniker = NULL;
+			 IRunningObjectTable *pROT = NULL;
+
+			 if (FAILED(GetRunningObjectTable(0, &pROT))) 
+			 {
+				 return E_FAIL;
+			 }
+
+			 const size_t STRING_LENGTH = 256;
+
+			 WCHAR wsz[STRING_LENGTH];
+
+			 StringCchPrintfW(
+				 wsz, STRING_LENGTH, 
+				 L"FilterGraph %08x pid %08x", 
+				 (DWORD_PTR)pUnkGraph, 
+				 GetCurrentProcessId()
+				 );
+
+			 HRESULT hr = CreateItemMoniker(L"!", wsz, &pMoniker);
+			 if (SUCCEEDED(hr)) 
+			 {
+				 hr = pROT->Register(ROTFLAGS_REGISTRATIONKEEPSALIVE, pUnkGraph,
+					 pMoniker, pdwRegister);
+				 pMoniker->Release();
+			 }
+			 pROT->Release();
+
+			 return hr;
+		 }
+
+
+		 void RemoveFromRot(DWORD pdwRegister){
+			 IRunningObjectTable *pROT;
+			 if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
+				 pROT->Revoke(pdwRegister);
+				 pROT->Release();
+			 }
+		 }
+
+
 
 };
 }
