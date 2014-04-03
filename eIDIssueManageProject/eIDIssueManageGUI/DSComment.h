@@ -31,4 +31,6 @@ public:
 
 	BYTE* SnapStillImage(long* size);
 
+	BYTE* SampleStillImage(long &size);
+
 };

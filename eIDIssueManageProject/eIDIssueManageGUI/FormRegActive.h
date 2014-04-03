@@ -5,6 +5,7 @@
 //#include "DirectXComment.h"
 #include "DSComment.h"
 
+
 //#define HED
 
 
@@ -559,7 +560,7 @@ namespace eIDIssueManageGUI {
 
 		private: System::Void FormRegActive_Load(System::Object^  sender, System::EventArgs^  e) {
 
-					 picCapture->Image = Image::FromFile(String("noboy.PNG").ToString(), false);
+//					 picCapture->Image = Image::FromFile(String("noboy.PNG").ToString(), false);
 					 
 					 hr = DS->CreatFilterGraph();
 					 if (FAILED(hr)){
@@ -604,7 +605,8 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 
 			 long size = 0;
 
-			 BYTE* pImage = DS->SnapStillImage(&size);
+//			 BYTE* pImage = DS->SnapStillImage(&size);
+			 BYTE* pImage = DS->SampleStillImage(size);
 			 MemoryStream^ ms = gcnew MemoryStream(size);
 			array<Byte>^ b = gcnew array<Byte>(size);
 			Marshal::Copy( (IntPtr)pImage, b, 0, size );

@@ -1,22 +1,12 @@
 #include "stdafx.h"
 #include "DSComment.h"
+#include "CSampleGrabber.h"
 
 #define HED
 
 using namespace System;
 using namespace System::Windows::Forms;
 
-		
-		IGraphBuilder *pGraphManager;
-		ICaptureGraphBuilder2 *pCapture;
-		ISampleGrabber *pGrabber;
-		IVideoWindow  *pVW;
-		IMediaControl *pMC;
-		IMediaEventEx *pME;
-		IBaseFilter *pCaptureBaseFilter;
-		IBaseFilter *pGrabberBaseFilter;
-
-		IBaseFilter *pNullRenderFilter;
 
 	HRESULT DSComment::CreatNullRender(){
 		HRESULT hr;
@@ -296,6 +286,7 @@ using namespace System::Windows::Forms;
 		pGrabberBaseFilter->Release();
 	}
 
+
 	BYTE* DSComment::SnapStillImage(long* size){
 		
 		HRESULT hr;
@@ -310,6 +301,8 @@ using namespace System::Windows::Forms;
 		hr = pGrabber->SetOneShot( FALSE );
 
 		pMC->Run();
+
+		//for test 
 /*
 		long EvCode=0;
         hr = pME->WaitForCompletion( INFINITE, &EvCode );
@@ -338,8 +331,9 @@ while (hr = pME->GetEvent(&evCode, &param1, &param2, 0), SUCCEEDED(hr))
 	
     hr = pME->FreeEventParams(evCode, param1, param2);
 }
-
 */
+		//test end
+
 		Sleep(500);
 		
 
@@ -397,5 +391,74 @@ while (hr = pME->GetEvent(&evCode, &param1, &param2, 0), SUCCEEDED(hr))
 	
 		return pCaptrue;		
 
+	}
+
+
+	BYTE* DSComment::SampleStillImage(long &size){
+		
+		HRESULT hr;
+		CSampleGrabberCB *CB = new CSampleGrabberCB;
+
+		pMC->Stop();
+
+		AM_MEDIA_TYPE mt;
+
+		hr = pGrabber->GetConnectedMediaType(&mt);
+		if (FAILED(hr))
+		{
+			MessageBox::Show("GetConnectedMediaType Fail!");
+
+		}
+
+		VIDEOINFOHEADER *pVih = (VIDEOINFOHEADER*)mt.pbFormat;
+
+		
+		
+		CB->lWidth = pVih->bmiHeader.biWidth;
+		CB->lHeight = pVih->bmiHeader.biHeight;
+
+		CB->bSnapOneShot = true;
+
+		long captureSize = CB->lHeight * CB->lWidth * 3;		
+
+		long cbBMI = mt.cbFormat - SIZE_PREHEADER;
+
+		long imageSize = cbBMI + captureSize + sizeof(BITMAPFILEHEADER);
+
+		size = imageSize;
+			
+		BITMAPFILEHEADER bmf = { };
+
+		bmf.bfType = 'MB';
+		bmf.bfSize = captureSize; 
+		bmf.bfOffBits = sizeof(bmf) + cbBMI;
+
+
+		BYTE *pImageTmp = new BYTE[imageSize];
+		
+		
+
+		hr = pGrabber->SetBufferSamples( FALSE );
+
+			// Only grab one at a time, stop stream after
+			// grabbing one sample
+			//
+		hr = pGrabber->SetOneShot( FALSE );
+
+		hr = pGrabber->SetCallback(CB, 1);
+
+		pMC->Run();
+
+		while(CB->bSnapOneShot){
+			;	
+		}
+
+		memcpy(pImageTmp, &bmf, sizeof(bmf));
+
+		memcpy((pImageTmp + sizeof(bmf)), &pVih->bmiHeader, cbBMI);
+		memcpy((pImageTmp + sizeof(bmf) + cbBMI), CB->pCapture, imageSize);
+
+		return pImageTmp;
+				
 	}
 
