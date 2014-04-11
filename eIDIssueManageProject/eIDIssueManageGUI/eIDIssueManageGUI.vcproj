@@ -223,7 +223,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FormMessageDialog.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\FormRegActive.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IDReaderComment.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RegComment.cpp"
 				>
 			</File>
 			<File
@@ -281,6 +293,16 @@
 				</File>
 			</File>
 			<File
+				RelativePath=".\FormMessageDialog.h"
+				FileType="3"
+				>
+				<File
+					RelativePath=".\FormMessageDialog.resx"
+					SubType="Designer"
+					>
+				</File>
+			</File>
+			<File
 				RelativePath=".\FormRegActive.h"
 				FileType="3"
 				>
@@ -289,6 +311,14 @@
 					SubType="Designer"
 					>
 				</File>
+			</File>
+			<File
+				RelativePath=".\IDReaderComment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RegComment.h"
+				>
 			</File>
 			<File
 				RelativePath=".\resource.h"

@@ -1,26 +1,34 @@
-// Microsoft Visual C++ 生成的资源脚本。
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 英语(美国)资源
+// 中文(中华人民共和国) resources
 
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 图标
+// Icon
 //
 
-// 放在最前面的图标或 ID 值最小的图标将成为应用程序的图标
-
-LANGUAGE 4, 2
-#pragma code_page(936)
-1           ICON         "app.ico"
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+1                       ICON                    "app.ico"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -28,25 +36,26 @@ LANGUAGE 4, 2
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE  
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
     "\0"
 END
 
-2 TEXTINCLUDE  
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE  
+3 TEXTINCLUDE 
 BEGIN
     "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
 
+#endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -54,10 +63,9 @@ END
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
-// 从 TEXTINCLUDE 3 资源生成。
+// Generated from the TEXTINCLUDE 3 resource.
 //
 
-
 /////////////////////////////////////////////////////////////////////////////
-#endif    // 不是 APSTUDIO_INVOKED
+#endif    // not APSTUDIO_INVOKED
 

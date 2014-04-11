@@ -1,3 +1,5 @@
+#ifndef _CSAMPLEGRABBER_H
+#define _CSAMPLEGRABBER_H
 
 class CSampleGrabberCB : public ISampleGrabberCB 
 {
@@ -45,3 +47,5 @@ public:
 	STDMETHODIMP BufferCB( double dblSampleTime, BYTE * pBuffer, long lBufferSize );
 
 };
+
+#endif

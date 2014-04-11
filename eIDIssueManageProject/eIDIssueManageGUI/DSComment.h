@@ -1,3 +1,5 @@
+#ifndef _DSCOMMENT_H
+#define _DSCOMMENT_H
 
 public ref class DSComment{
 public:
@@ -34,3 +36,5 @@ public:
 	BYTE* SampleStillImage(long &size);
 
 };
+
+#endif

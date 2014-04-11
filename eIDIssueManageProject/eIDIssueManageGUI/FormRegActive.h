@@ -1,10 +1,8 @@
 #pragma once
 
-//#include <uuids.h>
-//#include <strsafe.h>
-//#include "DirectXComment.h"
 #include "DSComment.h"
-
+#include "IDReaderComment.h"
+//#include "FormMessageDialog.h"
 
 //#define HED
 
@@ -59,6 +57,9 @@ namespace eIDIssueManageGUI {
 		String^ strCaptureDevName;
 		
 		DSComment^ DS;
+		IDReader^ idReader;
+
+//		FormMessageDialog^ messageDialog;
 		
 		
 
@@ -67,7 +68,7 @@ namespace eIDIssueManageGUI {
 	private: System::Windows::Forms::PictureBox^  picCapture;
 	private: System::Windows::Forms::Label^  label10;
 
-	private: System::Windows::Forms::Label^  label11;
+
 
 
 
@@ -85,8 +86,10 @@ namespace eIDIssueManageGUI {
 			bCaptureStill = false;
 
 			DS = gcnew DSComment();
+			idReader = gcnew IDReader();
 			
-			
+//			messageDialog = gcnew FormMessageDialog;
+
 			InitializeComponent();
 			//
 			//TODO: 在此处添加构造函数代码
@@ -173,7 +176,6 @@ namespace eIDIssueManageGUI {
 			this->btnCaptureIDInfo = (gcnew System::Windows::Forms::Button());
 			this->btnCaptureHeadPic = (gcnew System::Windows::Forms::Button());
 			this->picCapture = (gcnew System::Windows::Forms::PictureBox());
-			this->label11 = (gcnew System::Windows::Forms::Label());
 			this->label10 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picPriview))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picCapture))->BeginInit();
@@ -183,8 +185,11 @@ namespace eIDIssueManageGUI {
 			// 
 			this->picPriview->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picPriview->BackColor = System::Drawing::SystemColors::Control;
+			this->picPriview->BackgroundImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"picPriview.BackgroundImage")));
+			this->picPriview->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
 			this->picPriview->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
-			this->picPriview->Location = System::Drawing::Point(380, 35);
+			this->picPriview->InitialImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"picPriview.InitialImage")));
+			this->picPriview->Location = System::Drawing::Point(380, 12);
 			this->picPriview->Name = L"picPriview";
 			this->picPriview->Size = System::Drawing::Size(240, 180);
 			this->picPriview->TabIndex = 0;
@@ -422,26 +427,16 @@ namespace eIDIssueManageGUI {
 			// 
 			this->picCapture->AccessibleRole = System::Windows::Forms::AccessibleRole::Window;
 			this->picCapture->BackColor = System::Drawing::SystemColors::Control;
+			this->picCapture->BackgroundImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"picCapture.BackgroundImage")));
+			this->picCapture->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
 			this->picCapture->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
-			this->picCapture->InitialImage = (cli::safe_cast<System::Drawing::Image^  >(resources->GetObject(L"picCapture.InitialImage")));
-			this->picCapture->Location = System::Drawing::Point(380, 223);
+			this->picCapture->Location = System::Drawing::Point(380, 211);
 			this->picCapture->Name = L"picCapture";
 			this->picCapture->Size = System::Drawing::Size(240, 180);
 			this->picCapture->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->picCapture->TabIndex = 21;
 			this->picCapture->TabStop = false;
 			this->picCapture->Tag = L"";
-			// 
-			// label11
-			// 
-			this->label11->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
-				static_cast<System::Byte>(134)));
-			this->label11->Location = System::Drawing::Point(448, 9);
-			this->label11->Name = L"label11";
-			this->label11->Size = System::Drawing::Size(84, 23);
-			this->label11->TabIndex = 23;
-			this->label11->Text = L"视频预览";
-			this->label11->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
 			// label10
 			// 
@@ -461,7 +456,6 @@ namespace eIDIssueManageGUI {
 			this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->ClientSize = System::Drawing::Size(632, 457);
 			this->Controls->Add(this->label10);
-			this->Controls->Add(this->label11);
 			this->Controls->Add(this->picCapture);
 			this->Controls->Add(this->btnCaptureHeadPic);
 			this->Controls->Add(this->btnCaptureIDInfo);
@@ -501,7 +495,7 @@ namespace eIDIssueManageGUI {
 		
 		
 		private: System::Void FormRegActive_Shown(System::Object^  sender, System::EventArgs^  e) {
-				
+
 					 ::DialogResult result;					 
 	
 					 DWORD dwRegister = 0;
@@ -595,7 +589,11 @@ namespace eIDIssueManageGUI {
 
 			 }
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
-				  DS->pGrabber->SetOneShot( FALSE );
+			 if(!idReader->VerifyID()){
+				 MessageBox::Show("身份证校验错误！");
+			 }else{
+				 idReader->ReadIDInfo();
+			 }
 			 
 		 }
 
