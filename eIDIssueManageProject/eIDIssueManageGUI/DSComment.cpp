@@ -116,7 +116,7 @@ using namespace System::Windows::Forms;
 	   
 		// Create the system device enumerator
 		ICreateDevEnum *pDevEnum =NULL;
-		
+
 		hr = CoCreateInstance (
 			CLSID_SystemDeviceEnum, 
 			NULL, 
@@ -273,7 +273,7 @@ using namespace System::Windows::Forms;
 
 	void DSComment::DestroyFilter(){
 		
-		pMC->Stop();
+//		pMC->Stop();
 
 
 		pGraphManager->Release();
@@ -345,7 +345,8 @@ while (hr = pME->GetEvent(&evCode, &param1, &param2, 0), SUCCEEDED(hr))
 			MessageBox::Show("GetCurrentBuffer Fail!");	
 		}
 
-		BYTE *pBuffer = (BYTE*)CoTaskMemAlloc(cbBuffer);
+//		BYTE *pBuffer = (BYTE*)CoTaskMemAlloc(cbBuffer);
+		BYTE *pBuffer = new BYTE(cbBuffer);
 		if (!pBuffer) 
 		{
 			MessageBox::Show("CoTaskMemAlloc Fail!");
@@ -375,7 +376,8 @@ while (hr = pME->GetEvent(&evCode, &param1, &param2, 0), SUCCEEDED(hr))
 
 		long captureSize = cbBMI + cbBuffer + sizeof(BITMAPFILEHEADER);
 		*size = captureSize;
-		BYTE *pCaptrue = (BYTE*)CoTaskMemAlloc(captureSize);
+//		BYTE *pCaptrue = (BYTE*)CoTaskMemAlloc(captureSize);
+		BYTE *pCaptrue = new BYTE(captureSize);
 
 		BITMAPFILEHEADER bmf = { };
 		

@@ -48,6 +48,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/wd4430"
 				Optimization="0"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;_DEBUG"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
@@ -65,8 +66,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="gdi32.lib strmiids.lib quartz.lib strmbasd.lib winmm.lib"
+				AdditionalDependencies="gdi32.lib strmiids.lib quartz.lib strmbasd.lib winmm.lib sdtapi.lib PCSCReaderDriverDll.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="2"
@@ -314,6 +316,10 @@
 			</File>
 			<File
 				RelativePath=".\IDReaderComment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PCSCReaderDriverDll.h"
 				>
 			</File>
 			<File

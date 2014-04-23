@@ -1,8 +1,12 @@
 #pragma once
 
 #include "DSComment.h"
-#include "IDReaderComment.h"
+//#include "IDReaderComment.h"
 //#include "FormMessageDialog.h"
+
+#include "sdtapi.h"
+#include "PCSCReaderDriverDll.h"
+
 
 //#define HED
 
@@ -55,17 +59,42 @@ namespace eIDIssueManageGUI {
 
 		String^ strInfoMessage;
 		String^ strCaptureDevName;
+/*
+		String^ strIDName;
+		String^ strIDMale;
+		String^ strIDNational;
+		String^ strIDYear;
+		String^ strIDMonth;
+		String^ strIDDay;
+		String^ strIDAddress;
+		String^ strIDCode;
+		String^ strIDAgency;
+		String^ strIDExpireStart;
+		String^ strIDExpireEnd;
+*/
+		array<char>^ cIDName;
+		array<char>^ cIDMale;
+		array<char>^ cIDNational;
+		array<char>^ cIDBirthDay;
+		array<char>^ cIDAddress;
+		array<char>^ cIDCode;
+		array<char>^ cIDAgency;
+		array<char>^ cIDExpireStart;
+		array<char>^ cIDExpireEnd;		
 		
 		DSComment^ DS;
-		IDReader^ idReader;
+//		IDReader^ idReader;
 
 //		FormMessageDialog^ messageDialog;
+
+		static const int ReaderUSBPort = 1001;
 		
 		
 
 	private: System::Windows::Forms::Button^  btnCaptureIDInfo;
 	private: System::Windows::Forms::Button^  btnCaptureHeadPic;
 	private: System::Windows::Forms::PictureBox^  picCapture;
+	private: System::Windows::Forms::PictureBox^  picID;
 	private: System::Windows::Forms::Label^  label10;
 
 
@@ -85,8 +114,19 @@ namespace eIDIssueManageGUI {
 			bReturnUpForm = false;
 			bCaptureStill = false;
 
+			cIDName = gcnew array<char>(31);
+			cIDMale = gcnew array<char>(3);
+			cIDNational = gcnew array<char>(10);
+			cIDBirthDay = gcnew array<char>(9);
+			cIDAddress = gcnew array<char>(71);
+			cIDCode = gcnew array<char>(19);
+			cIDAgency = gcnew array<char>(31);
+			cIDExpireStart = gcnew array<char>(9);
+			cIDExpireEnd = gcnew array<char>(9);
+
+
 			DS = gcnew DSComment();
-			idReader = gcnew IDReader();
+//			idReader = gcnew IDReader();
 			
 //			messageDialog = gcnew FormMessageDialog;
 
@@ -177,8 +217,10 @@ namespace eIDIssueManageGUI {
 			this->btnCaptureHeadPic = (gcnew System::Windows::Forms::Button());
 			this->picCapture = (gcnew System::Windows::Forms::PictureBox());
 			this->label10 = (gcnew System::Windows::Forms::Label());
+			this->picID = (gcnew System::Windows::Forms::PictureBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picPriview))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picCapture))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picID))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// picPriview
@@ -200,7 +242,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label1->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label1->Location = System::Drawing::Point(16, 71);
+			this->label1->Location = System::Drawing::Point(14, 72);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(42, 23);
 			this->label1->TabIndex = 1;
@@ -212,18 +254,18 @@ namespace eIDIssueManageGUI {
 			this->textIDName->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDName->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDName->Location = System::Drawing::Point(67, 69);
+			this->textIDName->Location = System::Drawing::Point(65, 70);
 			this->textIDName->Name = L"textIDName";
 			this->textIDName->ReadOnly = true;
-			this->textIDName->Size = System::Drawing::Size(277, 29);
+			this->textIDName->Size = System::Drawing::Size(196, 29);
 			this->textIDName->TabIndex = 2;
-			this->textIDName->TextAlign = System::Windows::Forms::HorizontalAlignment::Right;
+			this->textIDName->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// label2
 			// 
 			this->label2->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label2->Location = System::Drawing::Point(16, 119);
+			this->label2->Location = System::Drawing::Point(14, 120);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(42, 23);
 			this->label2->TabIndex = 3;
@@ -234,7 +276,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label3->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label3->Location = System::Drawing::Point(163, 119);
+			this->label3->Location = System::Drawing::Point(125, 120);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(43, 23);
 			this->label3->TabIndex = 4;
@@ -246,81 +288,83 @@ namespace eIDIssueManageGUI {
 			this->textIDSex->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDSex->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDSex->Location = System::Drawing::Point(67, 117);
+			this->textIDSex->Location = System::Drawing::Point(65, 118);
 			this->textIDSex->Name = L"textIDSex";
 			this->textIDSex->ReadOnly = true;
-			this->textIDSex->Size = System::Drawing::Size(90, 29);
+			this->textIDSex->Size = System::Drawing::Size(54, 29);
 			this->textIDSex->TabIndex = 5;
-			this->textIDSex->TextAlign = System::Windows::Forms::HorizontalAlignment::Right;
+			this->textIDSex->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textIDNation
 			// 
 			this->textIDNation->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDNation->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDNation->Location = System::Drawing::Point(212, 117);
+			this->textIDNation->Location = System::Drawing::Point(174, 120);
 			this->textIDNation->Name = L"textIDNation";
 			this->textIDNation->ReadOnly = true;
-			this->textIDNation->Size = System::Drawing::Size(132, 29);
+			this->textIDNation->Size = System::Drawing::Size(87, 29);
 			this->textIDNation->TabIndex = 6;
-			this->textIDNation->TextAlign = System::Windows::Forms::HorizontalAlignment::Right;
+			this->textIDNation->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textIDYear
 			// 
 			this->textIDYear->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDYear->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDYear->Location = System::Drawing::Point(67, 171);
+			this->textIDYear->Location = System::Drawing::Point(65, 172);
 			this->textIDYear->Name = L"textIDYear";
 			this->textIDYear->ReadOnly = true;
-			this->textIDYear->Size = System::Drawing::Size(80, 29);
+			this->textIDYear->Size = System::Drawing::Size(91, 29);
 			this->textIDYear->TabIndex = 7;
-			this->textIDYear->TextAlign = System::Windows::Forms::HorizontalAlignment::Right;
+			this->textIDYear->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textIDMonth
 			// 
 			this->textIDMonth->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDMonth->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDMonth->Location = System::Drawing::Point(185, 171);
+			this->textIDMonth->Location = System::Drawing::Point(194, 172);
 			this->textIDMonth->Name = L"textIDMonth";
 			this->textIDMonth->ReadOnly = true;
-			this->textIDMonth->Size = System::Drawing::Size(47, 29);
+			this->textIDMonth->Size = System::Drawing::Size(63, 29);
 			this->textIDMonth->TabIndex = 8;
-			this->textIDMonth->TextAlign = System::Windows::Forms::HorizontalAlignment::Right;
+			this->textIDMonth->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textIDDay
 			// 
 			this->textIDDay->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDDay->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDDay->Location = System::Drawing::Point(269, 171);
+			this->textIDDay->Location = System::Drawing::Point(294, 172);
 			this->textIDDay->Name = L"textIDDay";
 			this->textIDDay->ReadOnly = true;
 			this->textIDDay->Size = System::Drawing::Size(47, 29);
 			this->textIDDay->TabIndex = 9;
+			this->textIDDay->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textIDLocation
 			// 
 			this->textIDLocation->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDLocation->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDLocation->Location = System::Drawing::Point(67, 223);
+			this->textIDLocation->Location = System::Drawing::Point(65, 224);
 			this->textIDLocation->Multiline = true;
 			this->textIDLocation->Name = L"textIDLocation";
 			this->textIDLocation->ReadOnly = true;
-			this->textIDLocation->Size = System::Drawing::Size(277, 29);
+			this->textIDLocation->Size = System::Drawing::Size(304, 67);
 			this->textIDLocation->TabIndex = 10;
+			this->textIDLocation->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textIDNum
 			// 
 			this->textIDNum->BackColor = System::Drawing::SystemColors::InactiveBorder;
 			this->textIDNum->Font = (gcnew System::Drawing::Font(L"宋体", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->textIDNum->Location = System::Drawing::Point(127, 307);
+			this->textIDNum->Location = System::Drawing::Point(125, 308);
 			this->textIDNum->Name = L"textIDNum";
 			this->textIDNum->ReadOnly = true;
-			this->textIDNum->Size = System::Drawing::Size(217, 29);
+			this->textIDNum->Size = System::Drawing::Size(244, 29);
 			this->textIDNum->TabIndex = 11;
 			this->textIDNum->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
@@ -328,7 +372,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label4->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label4->Location = System::Drawing::Point(16, 173);
+			this->label4->Location = System::Drawing::Point(14, 174);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(42, 23);
 			this->label4->TabIndex = 12;
@@ -339,7 +383,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label5->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label5->Location = System::Drawing::Point(16, 225);
+			this->label5->Location = System::Drawing::Point(14, 226);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(42, 23);
 			this->label5->TabIndex = 13;
@@ -350,7 +394,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label6->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label6->Location = System::Drawing::Point(153, 173);
+			this->label6->Location = System::Drawing::Point(162, 174);
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(26, 23);
 			this->label6->TabIndex = 14;
@@ -361,7 +405,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label7->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label7->Location = System::Drawing::Point(238, 173);
+			this->label7->Location = System::Drawing::Point(263, 172);
 			this->label7->Name = L"label7";
 			this->label7->Size = System::Drawing::Size(25, 23);
 			this->label7->TabIndex = 15;
@@ -372,7 +416,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label8->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label8->Location = System::Drawing::Point(322, 173);
+			this->label8->Location = System::Drawing::Point(347, 174);
 			this->label8->Name = L"label8";
 			this->label8->Size = System::Drawing::Size(22, 23);
 			this->label8->TabIndex = 16;
@@ -383,7 +427,7 @@ namespace eIDIssueManageGUI {
 			// 
 			this->label9->Font = (gcnew System::Drawing::Font(L"宋体", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
 				static_cast<System::Byte>(134)));
-			this->label9->Location = System::Drawing::Point(16, 309);
+			this->label9->Location = System::Drawing::Point(14, 310);
 			this->label9->Name = L"label9";
 			this->label9->Size = System::Drawing::Size(105, 23);
 			this->label9->TabIndex = 17;
@@ -393,7 +437,7 @@ namespace eIDIssueManageGUI {
 			// btnRegActive
 			// 
 			this->btnRegActive->Enabled = false;
-			this->btnRegActive->Location = System::Drawing::Point(290, 422);
+			this->btnRegActive->Location = System::Drawing::Point(316, 422);
 			this->btnRegActive->Name = L"btnRegActive";
 			this->btnRegActive->Size = System::Drawing::Size(75, 23);
 			this->btnRegActive->TabIndex = 18;
@@ -404,7 +448,7 @@ namespace eIDIssueManageGUI {
 			// btnCaptureIDInfo
 			// 
 			this->btnCaptureIDInfo->Enabled = false;
-			this->btnCaptureIDInfo->Location = System::Drawing::Point(67, 422);
+			this->btnCaptureIDInfo->Location = System::Drawing::Point(91, 422);
 			this->btnCaptureIDInfo->Name = L"btnCaptureIDInfo";
 			this->btnCaptureIDInfo->Size = System::Drawing::Size(128, 23);
 			this->btnCaptureIDInfo->TabIndex = 19;
@@ -449,12 +493,23 @@ namespace eIDIssueManageGUI {
 			this->label10->Text = L"身份信息";
 			this->label10->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			// 
+			// picID
+			// 
+			this->picID->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
+			this->picID->Location = System::Drawing::Point(267, 40);
+			this->picID->Name = L"picID";
+			this->picID->Size = System::Drawing::Size(102, 126);
+			this->picID->SizeMode = System::Windows::Forms::PictureBoxSizeMode::CenterImage;
+			this->picID->TabIndex = 25;
+			this->picID->TabStop = false;
+			// 
 			// FormRegActive
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(96, 96);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Dpi;
 			this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
 			this->ClientSize = System::Drawing::Size(632, 457);
+			this->Controls->Add(this->picID);
 			this->Controls->Add(this->label10);
 			this->Controls->Add(this->picCapture);
 			this->Controls->Add(this->btnCaptureHeadPic);
@@ -487,6 +542,7 @@ namespace eIDIssueManageGUI {
 			this->Shown += gcnew System::EventHandler(this, &FormRegActive::FormRegActive_Shown);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picPriview))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picCapture))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->picID))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -525,7 +581,7 @@ namespace eIDIssueManageGUI {
 									continue;
 								}
 
-								AddToRot(DS->pGraphManager, &dwRegister);
+//								AddToRot(DS->pGraphManager, &dwRegister);
 
 								DS->SetVideoWindows((HWND)picPriview->Handle.ToPointer());
 
@@ -576,25 +632,58 @@ namespace eIDIssueManageGUI {
 			
 			}
 
-		private: System::Void FormRegActive_InitializeComponent() {
-					 if(bIDReaderConnect){
-						;
-					 }else{
-						 MessageBox::Show("请把二代身份证放在读卡器上");
-					 }
-
-			 }
+		
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
-				  DS->pGrabber->SetOneShot( TRUE );
+				HANDLE hReader;	 
+				int ret = HD_OpenPort(0x21, "SCM Microsystems Inc. SDI011G Contactless Reader 0", &hReader);
 
 			 }
+
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {
-			 if(!idReader->VerifyID()){
-				 MessageBox::Show("身份证校验错误！");
-			 }else{
-				 idReader->ReadIDInfo();
+			 if(InitComm(ReaderUSBPort) != 1){
+				MessageBox::Show("Initialize Reader Failed！");
 			 }
-			 
+
+			 if(!Authenticate()){
+				 if(!CardOn()){
+					 MessageBox::Show("Please Put Card On Reader!");
+				 }else{
+					 MessageBox::Show("Authenticate IDCard Error！");
+				 }
+				 
+			 }else{
+				 cli::pin_ptr<char> pcIDName = &cIDName[0];
+				 cli::pin_ptr<char> pcIDAddress = &cIDAddress[0];
+				 cli::pin_ptr<char> pcIDAgency = &cIDAgency[0];
+				 cli::pin_ptr<char> pcIDBirthDay = &cIDBirthDay[0];
+				 cli::pin_ptr<char> pcIDCode = &cIDCode[0];
+				 cli::pin_ptr<char> pcIDMale = &cIDMale[0];
+				 cli::pin_ptr<char> pcIDNational = &cIDNational[0];
+
+				 cli::pin_ptr<char> pcIDExpireStart = &cIDExpireStart[0];
+				 cli::pin_ptr<char> pcIDExpireEnd = &cIDExpireEnd[0];;
+
+				 if(!ReadBaseInfos(pcIDName, pcIDMale, pcIDNational, pcIDBirthDay, pcIDCode, pcIDAddress, pcIDAgency, pcIDExpireStart, pcIDExpireEnd)){
+					 MessageBox::Show("Read IDCard Error！");
+				 }else{
+					 String^ strBirthday = String(pcIDBirthDay).ToString();
+
+
+					 textIDName->Text = String(pcIDName).ToString();
+					 textIDNation->Text = String(pcIDNational).ToString();
+					 textIDSex->Text = String(pcIDMale).ToString();
+					 textIDLocation->Text = String(pcIDAddress).ToString();
+					 textIDNum->Text = String(pcIDCode).ToString();
+					 textIDYear->Text = strBirthday->Substring(0, 4);
+					 textIDMonth->Text = strBirthday->Substring(4, 2);
+					 textIDDay->Text = strBirthday->Substring(6, 2);
+
+					 CloseComm();
+
+					 picID->Image = Image::FromFile("..\\debug\\photo.bmp");
+				 }
+			 }
+						 
 		 }
 
 		 
@@ -613,7 +702,7 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 			picCapture->Image = Image::FromStream(ms);	
 							
 		}
-
+/*
 
 		 HRESULT AddToRot(IUnknown *pUnkGraph, DWORD *pdwRegister){
 			 IMoniker * pMoniker = NULL;
@@ -656,7 +745,7 @@ private: System::Void btnCaptureHeadPic_Click(System::Object^  sender, System::E
 			 }
 		 }
 
-
+*/
 
 };
 }
