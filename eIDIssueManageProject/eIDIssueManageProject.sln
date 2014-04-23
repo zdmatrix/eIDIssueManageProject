@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eIDIssueManageGUI", "eIDIssueManageGUI\eIDIssueManageGUI.vcproj", "{6F4916DC-2AA8-4BCC-92AD-3D5FEE164C6E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PCSCReaderDriverDll", "PCSCReaderDriverDll\PCSCReaderDriverDll.vcproj", "{0EC5D225-0D32-45F0-A045-78EDB8771763}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -17,6 +19,10 @@ Global
 		{6F4916DC-2AA8-4BCC-92AD-3D5FEE164C6E}.Debug|Win32.Build.0 = Debug|Win32
 		{6F4916DC-2AA8-4BCC-92AD-3D5FEE164C6E}.Release|Win32.ActiveCfg = Release|Win32
 		{6F4916DC-2AA8-4BCC-92AD-3D5FEE164C6E}.Release|Win32.Build.0 = Release|Win32
+		{0EC5D225-0D32-45F0-A045-78EDB8771763}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0EC5D225-0D32-45F0-A045-78EDB8771763}.Debug|Win32.Build.0 = Debug|Win32
+		{0EC5D225-0D32-45F0-A045-78EDB8771763}.Release|Win32.ActiveCfg = Release|Win32
+		{0EC5D225-0D32-45F0-A045-78EDB8771763}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
