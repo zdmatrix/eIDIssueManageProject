@@ -1,11 +1,11 @@
 #pragma once
 
 #include "DSComment.h"
-//#include "IDReaderComment.h"
-//#include "FormMessageDialog.h"
+
+#include "FormMessageDialog.h"
 
 #include "sdtapi.h"
-#include "PCSCReaderDriverDll.h"
+//#include "RegComment.h"
 
 
 //#define HED
@@ -17,10 +17,6 @@ using namespace System::Collections;
 using namespace System::Windows::Forms;
 using namespace System::Data;
 using namespace System::Drawing;
-
-using namespace System::IO;
-using namespace System::Drawing::Imaging;
-using namespace System::Runtime::InteropServices;
 
 
 
@@ -59,19 +55,7 @@ namespace eIDIssueManageGUI {
 
 		String^ strInfoMessage;
 		String^ strCaptureDevName;
-/*
-		String^ strIDName;
-		String^ strIDMale;
-		String^ strIDNational;
-		String^ strIDYear;
-		String^ strIDMonth;
-		String^ strIDDay;
-		String^ strIDAddress;
-		String^ strIDCode;
-		String^ strIDAgency;
-		String^ strIDExpireStart;
-		String^ strIDExpireEnd;
-*/
+
 		array<char>^ cIDName;
 		array<char>^ cIDMale;
 		array<char>^ cIDNational;
@@ -80,14 +64,25 @@ namespace eIDIssueManageGUI {
 		array<char>^ cIDCode;
 		array<char>^ cIDAgency;
 		array<char>^ cIDExpireStart;
-		array<char>^ cIDExpireEnd;		
+		array<char>^ cIDExpireEnd;
+
+		array<unsigned char>^ cRespData;
 		
 		DSComment^ DS;
-//		IDReader^ idReader;
+//		RegComment^ RC;
 
-//		FormMessageDialog^ messageDialog;
+		FormMessageDialog^ messageDialog;
 
 		static const int ReaderUSBPort = 1001;
+		const static int PORT = 21;
+		static const int RESPDATALEN = 2056;
+
+		HANDLE hReader;
+
+		long ret;
+
+		const static char* CONTACTREADER = "SCM Microsystems Inc. SDI011G Smart Card Reader 0";
+		const static char* CONTACTLESSREADER = "SCM Microsystems Inc. SDI011G Contactless Reader 0";
 		
 		
 
@@ -123,12 +118,19 @@ namespace eIDIssueManageGUI {
 			cIDAgency = gcnew array<char>(31);
 			cIDExpireStart = gcnew array<char>(9);
 			cIDExpireEnd = gcnew array<char>(9);
+			cRespData = gcnew array<unsigned char>(RESPDATALEN);
 
+			
 
 			DS = gcnew DSComment();
-//			idReader = gcnew IDReader();
+//			RC = gcnew RegComment();
+
 			
-//			messageDialog = gcnew FormMessageDialog;
+			messageDialog = gcnew FormMessageDialog;
+
+			
+
+
 
 			InitializeComponent();
 			//
@@ -634,9 +636,123 @@ namespace eIDIssueManageGUI {
 
 		
 	private: System::Void btnRegActive_Click(System::Object^  sender, System::EventArgs^  e) {
-				HANDLE hReader;	 
-				int ret = HD_OpenPort(0x21, "SCM Microsystems Inc. SDI011G Contactless Reader 0", &hReader);
+/*
+				 long ret = 0;
+				 ret = RC->OpenReader();
+				 if( ret != 0x9000){
+					 switch (ret)
+					 {
+						 case CER_NOCARD:
+							MessageBox::Show("No Card Plus In!");
+					 		break;
+						 case CER_PCSC_SCardListReaders:
+							 MessageBox::Show("No Readers!");
+							 break;
+						 default:
+							 MessageBox::Show("Open Reader Failed!");
+							 break;
+					 }
+					 
+				 }else{
+					 messageDialog->Activate();
+					 messageDialog->ShowDialog(this);
+				 }
+  */
+				 cli::pin_ptr<HANDLE> hhReader = &hReader;
+				 ret = HD_OpenPort(PORT, (char*)CONTACTREADER, (HANDLE *)hhReader);
+				 if( ret != 0x9000){
+					 switch (ret)
+					 {
+					 case CER_NOCARD:
+						 MessageBox::Show("No Card Plus In!");
+						 break;
+					 case CER_PCSC_SCardListReaders:
+						 MessageBox::Show("No Readers!");
+						 break;
+					 default:
+						 MessageBox::Show("Open Reader Failed!");
+						 break;
+					 }
+					 
 
+				 }else{
+					 messageDialog->Activate();
+					 messageDialog->ShowDialog(this);
+					 
+				 }
+				 HD_ClosePort(hReader);
+				 
+/*
+				 else{
+					 cli::pin_ptr<unsigned char> ch = &cRespData[0];
+					 if(RC->SeclectCardManager(ch) != 0x9000){
+						 
+						 MessageBox::Show("Select Card Manager Failed!");
+					 }else{
+						 if(RC->VerifyISD(ch) != 0x9000){
+							 MessageBox::Show("Verify ISD Failed!");
+						 }
+
+					 }
+				 }
+
+				 RC->CloseReader();
+  */
+/*	
+				 Process^ myProcess = gcnew Process;
+				 
+				 array<Byte>^info;
+
+				 String^ inputText;
+				 
+				 // Get the path that stores user documents.
+				 
+				 // You can start any process, HelloWorld is a do-nothing example.
+				 myProcess->StartInfo->FileName = "C:\\Program Files\\NXP Semiconductors Germany GmbH\\JCShell Standalone 2.0.0.1\\JCShell.exe";
+//					 myProcess->StartInfo->FileName = "C:\\Program Files\\PowerCmd\\PowerCmd.exe";
+				 myProcess->StartInfo->UseShellExecute = false;
+				 myProcess->StartInfo->CreateNoWindow = true;
+				 myProcess->StartInfo->RedirectStandardInput = true;
+				 myProcess->StartInfo->RedirectStandardOutput = true;
+				 myProcess->StartInfo->RedirectStandardError = true;
+
+				 myProcess->Start();
+
+				 StreamReader^ myStreamReader = myProcess->StandardOutput;
+				 StreamReader^ errstr = myProcess->StandardError;
+				 StreamWriter^ myStreamWriter = myProcess->StandardInput;
+				 
+				 inputText = "/term";
+				 myStreamWriter->WriteLine( inputText );
+ 
+				 inputText = "/set-var path d:/test";
+				 myStreamWriter->WriteLine( inputText );
+
+
+				 inputText = "pse_issue";
+//					 inputText = "pse_register";
+				 myStreamWriter->WriteLine( inputText );
+  
+				 myStreamWriter->Close();
+
+//				 String^ path = inputText + "_log.txt";
+				 String^ path = "term_log.txt";
+				 FileStream^ fs = gcnew FileStream(path, FileMode::OpenOrCreate, FileAccess::ReadWrite);
+
+				 String^ str = myProcess->StandardOutput->ReadToEnd();
+
+				 myProcess->WaitForExit();
+
+				 info = (gcnew UTF8Encoding( true ))->GetBytes( str );
+				 fs->Write( info, 0, info->Length );
+
+
+				 myStreamReader->Close();
+				 
+				 fs->Close();
+					
+				 MessageBox::Show("Write done!");
+*/
 			 }
 
 private: System::Void btnCaptureIDInfo_Click(System::Object^  sender, System::EventArgs^  e) {

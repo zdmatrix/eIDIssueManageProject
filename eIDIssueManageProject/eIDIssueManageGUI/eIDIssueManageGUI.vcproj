@@ -233,10 +233,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IDReaderComment.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\RegComment.cpp"
 				>
 			</File>
@@ -313,10 +309,6 @@
 					SubType="Designer"
 					>
 				</File>
-			</File>
-			<File
-				RelativePath=".\IDReaderComment.h"
-				>
 			</File>
 			<File
 				RelativePath=".\PCSCReaderDriverDll.h"
