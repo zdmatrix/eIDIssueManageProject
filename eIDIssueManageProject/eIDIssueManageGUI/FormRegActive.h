@@ -596,7 +596,10 @@ namespace eIDIssueManageGUI {
 						}
 					 }
 					 if(bReturnUpForm){
-						DS->DestroyFilter();
+						
+							DS->DestroyFilter();
+						
+						 
 						this->Owner->Activate();
 						this->Owner->Show();
 						this->Close();
@@ -605,7 +608,10 @@ namespace eIDIssueManageGUI {
 				 }
 
 		private: System::Void FormRegActive_Closed(System::Object^  sender, System::EventArgs^  e) {
-					 DS->DestroyFilter();
+					 
+//						 DS->DestroyFilter();
+					 
+					 
 			this->Owner->Activate();
 			this->Owner->Show();
 		}

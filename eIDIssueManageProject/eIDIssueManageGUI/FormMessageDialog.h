@@ -188,7 +188,7 @@ namespace eIDIssueManageGUI {
 					 btnRun->Text = "Retry";
 					 textBox1->Text = "Start the " + nRetryNum.ToString() + " times process : \r\n\r\n";
 
-				 strInfoMessage = RC->ProcessRun("register");
+				 RC->ProcessRun("register");
 				 textBox1->Text += strInfoMessage;
 				 if(bStatusOK = strInfoMessage->Contains((String^)REGISTEROK)){
 					 textBox1->Text += "\r\n\r\nRegister Sucess!";

@@ -113,7 +113,7 @@ using namespace System::Windows::Forms;
 #endif
 
 		cli::pin_ptr<IBaseFilter *> ppCaptureBaseFilter = &pCaptureBaseFilter;
-	   
+//		cli::interior_ptr<IBaseFilter *> ppCaptureBaseFilter = &pCaptureBaseFilter;
 		// Create the system device enumerator
 		ICreateDevEnum *pDevEnum =NULL;
 
@@ -150,6 +150,8 @@ using namespace System::Windows::Forms;
 					This sample requires a video capture device, such as a USB WebCam,\r\n \
 					to be installed and working properly.  The sample will now close. \
 					No Video Capture Hardware");
+			
+			pDevEnum->Release();
 			return E_FAIL;
 		}
 
@@ -186,6 +188,10 @@ using namespace System::Windows::Forms;
 					hr = S_OK;
 				}else{
 					hr = E_FAIL;
+					pMoniker->Release();
+					pClassEnum->Release();
+					pDevEnum->Release();
+					
 					return hr;
 				}
 			}
@@ -276,14 +282,34 @@ using namespace System::Windows::Forms;
 //		pMC->Stop();
 
 
-		pGraphManager->Release();
-		pCapture->Release();
-		pGrabber->Release();
-		pVW->Release();
-		pMC->Release();
-		pME->Release();
-		pCaptureBaseFilter->Release();
-		pGrabberBaseFilter->Release();
+		if(pGraphManager != nullptr){
+		   pGraphManager->Release();
+		}
+		if(pCapture != nullptr){
+			pCapture->Release();
+		}
+		if(pNullRenderFilter != nullptr){
+			pNullRenderFilter->Release();
+		}
+		if(pGrabber != nullptr){
+			pGrabber->Release();
+		}
+		if(pVW != nullptr){
+			pVW->Release();
+		}
+		if(pMC != nullptr){
+			pMC->Release();
+		}
+		if(pME != nullptr){
+			pME->Release();
+		}
+		if(pCaptureBaseFilter != nullptr){
+			pCaptureBaseFilter->Release();
+		}
+		if(pGrabberBaseFilter != nullptr){
+			pGrabberBaseFilter->Release();
+		}
+		
 	}
 
 
